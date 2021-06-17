@@ -5,6 +5,7 @@ pub use pallet::*;
 use pallet_identity::IdentityTrait;
 use pallet_identity::IdentityType;
 use pallet_identity::PassportId;
+use sp_std::cmp::{Ord, PartialOrd};
 use sp_std::collections::btree_set::BTreeSet;
 
 #[cfg(test)]
@@ -44,35 +45,9 @@ pub mod pallet {
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
-    #[pallet::type_value]
-    pub fn StoredKycRequestsDefault<T: Config>() -> BTreeSet<T::AccountId> {
-        Default::default()
-    }
-
     #[pallet::storage]
-    type SomeKycRequests<T: Config> = StorageMap<
-        _,
-        Blake2_128Concat,
-        T::BlockNumber,
-        BTreeSet<T::AccountId>,
-        ValueQuery,
-        StoredKycRequestsDefault<T>,
-    >;
-
-    #[pallet::storage]
-    type SomeKycData<T: Config> =
+    type SomeKycRequests<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, KycData, OptionQuery>;
-
-    // TODO: return back all these requests into the SomeKycRequests storage after they will wait long time
-    #[pallet::storage]
-    type SomePendingReviewKycRequests<T: Config> = StorageMap<
-        _,
-        Blake2_128Concat,
-        T::BlockNumber,
-        BTreeSet<T::AccountId>,
-        ValueQuery,
-        StoredKycRequestsDefault<T>,
-    >;
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
@@ -90,17 +65,11 @@ pub mod pallet {
             );
 
             ensure!(
-                <SomeKycData<T>>::get(sender.clone()) == None,
+                <SomeKycRequests<T>>::get(sender.clone()) == None,
                 <Error<T>>::AlreadyAplliedKycRequest
             );
 
-            let block_number = <frame_system::Pallet<T>>::block_number();
-
-            let mut requests = <SomeKycRequests<T>>::get(block_number);
-            requests.insert(sender.clone());
-            <SomeKycRequests<T>>::insert(block_number, requests);
-
-            <SomeKycData<T>>::insert(sender, kyc_data);
+            <SomeKycRequests<T>>::insert(sender, kyc_data);
 
             Ok(().into())
         }
@@ -108,7 +77,7 @@ pub mod pallet {
         #[pallet::weight(1)]
         pub(super) fn kyc_response(
             origin: OriginFor<T>,
-            info: KycRequest<T::AccountId, T::BlockNumber>,
+            info: KycRequest<T::AccountId>,
             approved: bool,
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
@@ -118,11 +87,8 @@ pub mod pallet {
                 <Error<T>>::AccountCannotProcessKyc
             );
 
-            let mut requests = <SomePendingReviewKycRequests<T>>::get(info.block_number);
-
             ensure!(
-                <SomeKycData<T>>::get(info.account.clone()) == Some(info.data.clone())
-                    && requests.contains(&info.account),
+                <SomeKycRequests<T>>::get(info.account.clone()) == Some(info.data.clone()),
                 <Error<T>>::RequestDoesNotExist
             );
 
@@ -133,71 +99,39 @@ pub mod pallet {
             }
 
             // remove request from the storage
-            requests.remove(&info.account);
-            <SomeKycData<T>>::remove(info.account);
+            <SomeKycRequests<T>>::remove(info.account);
 
             Ok(().into())
         }
     }
 
     impl<T: Config> Pallet<T> {
-        pub fn get_earliest_request() -> Option<KycRequest<T::AccountId, T::BlockNumber>> {
-            if let Some((mut erlieast_height, mut erlieast_requests)) =
-                <SomeKycRequests<T>>::iter().next()
-            {
-                // find the erliest request
-                <SomeKycRequests<T>>::iter().for_each(|(height, requests)| {
-                    if height < erlieast_height {
-                        erlieast_height = height;
-                        erlieast_requests = requests;
-                    }
-                });
-
-                // get the first value, it should exists
-                let request = erlieast_requests.iter().next().unwrap().clone();
-                // remove this entry from the set
-                erlieast_requests.remove(&request);
-
-                // remove this entry is vec is empty
-                if erlieast_requests.is_empty() {
-                    <SomeKycRequests<T>>::remove(erlieast_height);
-                } else {
-                    <SomeKycRequests<T>>::insert(erlieast_height, erlieast_requests.clone());
-                }
-
-                // add this request as pending review
-                let mut pending = <SomePendingReviewKycRequests<T>>::get(erlieast_height);
-                pending.insert(request.clone());
-                <SomePendingReviewKycRequests<T>>::insert(erlieast_height, pending);
-
-                return Some(KycRequest {
-                    account: request.clone(),
-                    block_number: erlieast_height,
-                    data: <SomeKycData<T>>::get(request).unwrap(),
-                });
-            }
-
-            None
+        pub fn get_all_requests() -> BTreeSet<KycRequest<T::AccountId>> {
+            <SomeKycRequests<T>>::iter()
+                .map(|(account, data)| KycRequest {
+                    account: account,
+                    data: data,
+                })
+                .collect()
         }
     }
 }
 
 sp_api::decl_runtime_apis! {
     pub trait KycPalletApi<T: Config> {
-        fn get_earliest_request() -> Option<KycRequest<T::AccountId, T::BlockNumber>>;
+        fn get_all_requests() -> BTreeSet<KycRequest<T::AccountId>>;
     }
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Encode, Decode, Eq, PartialEq, Debug)]
-pub struct KycRequest<AccountId, BlockNumber> {
+#[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
+pub struct KycRequest<AccountId> {
     pub account: AccountId,
-    pub block_number: BlockNumber,
     pub data: KycData,
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Encode, Decode, Eq, PartialEq, Debug)]
+#[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
 pub struct KycData {
     pub id: PassportId,
 }

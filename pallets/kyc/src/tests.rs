@@ -30,7 +30,7 @@ fn basic_identity_test() {
             false
         );
 
-        assert_eq!(KycPallet::get_earliest_request(), None);
+        assert_eq!(KycPallet::get_all_requests(), Default::default());
 
         // request kyc
         assert_ok!(KycPallet::request_kyc(
@@ -56,13 +56,16 @@ fn basic_identity_test() {
         );
 
         // get KYC request data
-        let request1 = KycPallet::get_earliest_request().unwrap();
-        assert_eq!(request1.block_number, 0);
+        let requests = KycPallet::get_all_requests();
+
+        assert_eq!(requests.len(), 2);
+        let mut it = requests.iter();
+
+        let request1 = it.next().unwrap().clone();
         assert_eq!(request1.account, ensure_signed(account1.clone()).unwrap());
         assert_eq!(request1.data.id, id1);
 
-        let request2 = KycPallet::get_earliest_request().unwrap();
-        assert_eq!(request2.block_number, 2);
+        let request2 = it.next().unwrap().clone();
         assert_eq!(request2.account, ensure_signed(account2.clone()).unwrap());
         assert_eq!(request2.data.id, id2);
 
@@ -95,7 +98,7 @@ fn basic_identity_test() {
             false
         );
 
-        assert_eq!(KycPallet::get_earliest_request(), None);
+        assert_eq!(KycPallet::get_all_requests(), Default::default());
 
         assert_err!(
             KycPallet::kyc_response(reviewer_account.clone(), request1, true),
