@@ -468,8 +468,8 @@ impl_runtime_apis! {
     // Liberland runtime apis
 
     impl pallet_kyc::KycPalletApi<Block, Runtime> for Runtime {
-        fn get_earliest_request() -> Option<pallet_kyc::KycRequest<AccountId, BlockNumber>> {
-            KycPallet::get_earliest_request()
+        fn get_all_requests() -> BTreeSet<pallet_kyc::KycRequest<AccountId>> {
+            KycPallet::get_all_requests()
         }
     }
 
