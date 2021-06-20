@@ -1,4 +1,3 @@
-use crate as pallet_kyc;
 use frame_support::parameter_types;
 use frame_system as system;
 use sp_core::H256;
