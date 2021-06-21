@@ -2,6 +2,9 @@
 
 use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
+use sp_std::cmp::{Ord, PartialOrd};
+use sp_std::collections::btree_map::BTreeMap;
+use sp_std::collections::btree_set::BTreeSet;
 
 #[cfg(test)]
 mod mock;
@@ -34,17 +37,27 @@ pub mod pallet {
 
     #[pallet::storage]
     type SomePendingVotings<T: Config> =
-        StorageMap<_, Blake2_128Concat, VotingSubject<T>, T::BlockNumber, OptionQuery>;
+        StorageMap<_, Blake2_128Concat, VotingSubject<T::Hash>, T::BlockNumber, OptionQuery>;
 
     #[pallet::storage]
     type SomeVotingResults<T: Config> =
-        StorageMap<_, Blake2_128Concat, VotingSubject<T>, VotingResult, OptionQuery>;
+        StorageMap<_, Blake2_128Concat, VotingSubject<T::Hash>, VotingResult, OptionQuery>;
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {}
 
     impl<T: Config> Pallet<T> {
-        pub fn create_voting(subject: VotingSubject<T>) -> Result<(), Error<T>> {
+        pub fn get_current_votings() -> BTreeSet<VotingSubject<T::Hash>> {
+            <SomeVotingResults<T>>::iter()
+                .map(|(subject, _)| subject)
+                .collect()
+        }
+
+        pub fn get_voting_results() -> BTreeMap<VotingSubject<T::Hash>, VotingResult> {
+            <SomeVotingResults<T>>::iter().collect()
+        }
+
+        pub fn create_voting(subject: VotingSubject<T::Hash>) -> Result<(), Error<T>> {
             ensure!(
                 <SomePendingVotings<T>>::get(subject.clone()) == None
                     && <SomeVotingResults<T>>::get(subject.clone()) == None,
@@ -60,13 +73,13 @@ pub mod pallet {
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Encode, Decode, Eq, PartialEq, Debug)]
+#[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
 pub struct VotingResult {
     pub result: bool,
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Encode, Decode, Eq, PartialEq, Debug)]
-pub struct VotingSubject<T: Config> {
-    pub subject_hash: T::Hash,
+#[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
+pub struct VotingSubject<Hash> {
+    pub subject_hash: Hash,
 }
