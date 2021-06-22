@@ -2,10 +2,11 @@
 
 use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
-use serde_closure::{traits::Fn, Fn};
+use sp_std::boxed::Box;
 use sp_std::cmp::{Ord, PartialOrd};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::collections::btree_set::BTreeSet;
+use sp_std::vec::Vec;
 
 #[cfg(test)]
 mod mock;
@@ -21,7 +22,9 @@ pub mod pallet {
 
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
-    pub trait Config: frame_system::Config {}
+    pub trait Config: frame_system::Config {
+        const VALIDATION_RULES: Vec<Box<dyn VotingValidation<Self::AccountId>>>;
+    }
 
     #[pallet::pallet]
     #[pallet::generate_store(trait Store)]
@@ -71,6 +74,10 @@ pub mod pallet {
             Ok(())
         }
     }
+}
+
+pub trait VotingValidation<AccountId> {
+    fn validate(&self, account: AccountId) -> bool;
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]

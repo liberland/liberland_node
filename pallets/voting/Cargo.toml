@@ -14,7 +14,6 @@ targets = ['x86_64-unknown-linux-gnu']
 [dependencies]
 # external dependencies
 codec = {default-features = false, features = ['derive'], package = 'parity-scale-codec', version = '2.0.0'}
-serde_closure = {default-features = false, version = '0.3.2'}
 serde = {version = '1.0.119', optional = true}
 
 # Substrate dependencies
