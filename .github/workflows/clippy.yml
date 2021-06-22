@@ -34,5 +34,7 @@ jobs:
           rustup update stable
           rustup target add wasm32-unknown-unknown --toolchain nightly
 
+      - name: Install target
+        run: rustup target add wasm32-unknown-unknown
       - name: Check clippy
         run: cargo clippy -- -D warnings -A clippy::large-enum-variant -A clippy::too-many-arguments -A clippy::unnecessary-mut-passed -A clippy::type-complexity
