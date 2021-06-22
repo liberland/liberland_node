@@ -23,7 +23,7 @@ pub mod pallet {
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config: frame_system::Config {
-        const VALIDATION_RULES: Vec<Box<dyn VotingValidation<Self::AccountId>>>;
+        const VALIDATION_RULES: Vec<Box<dyn VotingValidation<Self::AccountId, Self::Hash>>>;
     }
 
     #[pallet::pallet]
@@ -76,8 +76,8 @@ pub mod pallet {
     }
 }
 
-pub trait VotingValidation<AccountId> {
-    fn validate(&self, account: AccountId) -> bool;
+pub trait VotingValidation<AccountId, Hash> {
+    fn validate(&self, account: AccountId, subject: VotingSubject<Hash>) -> bool;
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
