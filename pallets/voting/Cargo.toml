@@ -14,6 +14,7 @@ targets = ['x86_64-unknown-linux-gnu']
 [dependencies]
 # external dependencies
 codec = {default-features = false, features = ['derive'], package = 'parity-scale-codec', version = '2.0.0'}
+serde_closure = {default-features = false, version = '0.3.2'}
 serde = {version = '1.0.119', optional = true}
 
 # Substrate dependencies
@@ -25,6 +26,7 @@ sp-api = {default-features = false, version = '3.0.0', git = 'https://github.com
 
 [dev-dependencies]
 serde = '1.0.119'
+assert = '0.0.4'
 sp-core = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
 sp-io = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
 sp-runtime = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}

@@ -192,6 +192,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d6e24d2cce90c53b948c46271bfb053e4bdc2db9b5d3f65e20f8cf28a1b7fc3"
 
 [[package]]
+name = "assert"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6ad2cfc66932f8ceee708631eaaf7131d189a2a68610269a6f65b433dd8c844"
+
+[[package]]
 name = "async-channel"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2813,6 +2819,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-voting",
  "parity-scale-codec",
  "sp-api",
  "sp-block-builder",
@@ -4115,11 +4122,13 @@ dependencies = [
 name = "pallet-voting"
 version = "1.0.0"
 dependencies = [
+ "assert",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
  "serde",
+ "serde_closure",
  "sp-api",
  "sp-core",
  "sp-io",
@@ -5162,6 +5171,12 @@ dependencies = [
  "schannel",
  "security-framework",
 ]
+
+[[package]]
+name = "rustversion"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61b3909d758bb75c79f23d4736fac9433868679d3ad2ea7a61e3c25cfda9a088"
 
 [[package]]
 name = "ruzstd"
@@ -6246,6 +6261,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec7505abeacaec74ae4778d9d9328fe5a5d04253220a85c4ee022239fc996d03"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde_closure"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dfcafdff09f246e0bca489d8dc841fa557debc1ced3ed7e619623cfe8795698"
+dependencies = [
+ "rustversion",
+ "serde",
+ "serde_closure_derive",
+]
+
+[[package]]
+name = "serde_closure_derive"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e51569ae5ecb8561699059dbbf1181e13f59c042438552e56c6ddf794f84eb7c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

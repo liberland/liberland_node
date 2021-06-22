@@ -1,3 +1,4 @@
+use crate as pallet_voting;
 use frame_support::parameter_types;
 use frame_system as system;
 use sp_core::H256;
@@ -17,6 +18,7 @@ frame_support::construct_runtime!(
         UncheckedExtrinsic = UncheckedExtrinsic,
     {
         System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+        VotingPallet: pallet_voting::{Pallet, Call, Storage},
     }
 );
 
@@ -50,6 +52,8 @@ impl system::Config for Test {
     type SS58Prefix = SS58Prefix;
     type OnSetCode = ();
 }
+
+impl pallet_voting::Config for Test {}
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {

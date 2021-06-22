@@ -2,6 +2,7 @@
 
 use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
+use serde_closure::{traits::Fn, Fn};
 use sp_std::cmp::{Ord, PartialOrd};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::collections::btree_set::BTreeSet;
@@ -48,7 +49,7 @@ pub mod pallet {
 
     impl<T: Config> Pallet<T> {
         pub fn get_current_votings() -> BTreeSet<VotingSubject<T::Hash>> {
-            <SomeVotingResults<T>>::iter()
+            <SomePendingVotings<T>>::iter()
                 .map(|(subject, _)| subject)
                 .collect()
         }
