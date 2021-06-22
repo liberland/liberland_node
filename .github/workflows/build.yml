@@ -37,6 +37,6 @@ jobs:
           rustup target add wasm32-unknown-unknown --toolchain nightly
 
       - name: Build
-        run: cargo build --all
+        run: cargo build --all --jobs 1
       - name: Tests
-        run: cargo test --all
+        run: cargo test --all --jobs 1
