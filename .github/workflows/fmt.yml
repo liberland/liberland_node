@@ -1,5 +1,8 @@
 name: Check fmt
 
+# Start jobs on self-hosted runners
+runs-on: self-hosted
+
 # Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
