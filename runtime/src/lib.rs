@@ -282,9 +282,7 @@ impl pallet_kyc::Config for Runtime {
     type IdentityTrait = IdentityPallet;
 }
 /// Configure the pallet-voting in pallets/voting.
-impl pallet_voting::Config for Runtime {
-    const VALIDATION_RULES: Vec<Box<dyn pallet_voting::VotingValidation<Self::AccountId>>> = vec![];
-}
+impl pallet_voting::Config for Runtime {}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(

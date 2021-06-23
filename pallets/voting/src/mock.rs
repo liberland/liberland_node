@@ -53,9 +53,7 @@ impl system::Config for Test {
     type OnSetCode = ();
 }
 
-impl pallet_voting::Config for Test {
-    const VALIDATION_RULES: Vec<Box<dyn pallet_voting::VotingValidation<Self::AccountId>>> = vec![];
-}
+impl pallet_voting::Config for Test {}
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
