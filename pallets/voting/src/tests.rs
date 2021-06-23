@@ -10,9 +10,11 @@ fn basic_voting_test() {
         type Hashing = <Test as frame_system::Config>::Hashing;
 
         assert_eq!(VotingPallet::get_current_votings(), Default::default());
+        assert_eq!(VotingPallet::get_voting_results(), Default::default());
 
-        let subject = VotingSubject {
+        let subject = Voting {
             subject_hash: Hashing::hash(&[1; 32]),
+            voting_duration: 100,
         };
 
         assert_ok!(VotingPallet::create_voting(subject.clone()));

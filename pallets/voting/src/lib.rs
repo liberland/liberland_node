@@ -23,7 +23,7 @@ pub mod pallet {
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config: frame_system::Config {
-        const VALIDATION_RULES: Vec<Box<dyn VotingValidation<Self::AccountId, Self::Hash>>>;
+        const VALIDATION_RULES: Vec<Box<dyn VotingValidation<Self::AccountId>>>;
     }
 
     #[pallet::pallet]
@@ -37,31 +37,44 @@ pub mod pallet {
     }
 
     #[pallet::hooks]
-    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        fn on_finalize(block_number: BlockNumberFor<T>) {}
+    }
 
     #[pallet::storage]
-    type SomePendingVotings<T: Config> =
-        StorageMap<_, Blake2_128Concat, VotingSubject<T::Hash>, T::BlockNumber, OptionQuery>;
+    type SomePendingVotings<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        Voting<T::Hash, T::BlockNumber>,
+        T::BlockNumber,
+        OptionQuery,
+    >;
 
     #[pallet::storage]
-    type SomeVotingResults<T: Config> =
-        StorageMap<_, Blake2_128Concat, VotingSubject<T::Hash>, VotingResult, OptionQuery>;
+    type SomeVotingResults<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        Voting<T::Hash, T::BlockNumber>,
+        VotingResult<T::BlockNumber>,
+        OptionQuery,
+    >;
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {}
 
     impl<T: Config> Pallet<T> {
-        pub fn get_current_votings() -> BTreeSet<VotingSubject<T::Hash>> {
+        pub fn get_current_votings() -> BTreeSet<Voting<T::Hash, T::BlockNumber>> {
             <SomePendingVotings<T>>::iter()
                 .map(|(subject, _)| subject)
                 .collect()
         }
 
-        pub fn get_voting_results() -> BTreeMap<VotingSubject<T::Hash>, VotingResult> {
+        pub fn get_voting_results(
+        ) -> BTreeMap<Voting<T::Hash, T::BlockNumber>, VotingResult<T::BlockNumber>> {
             <SomeVotingResults<T>>::iter().collect()
         }
 
-        pub fn create_voting(subject: VotingSubject<T::Hash>) -> Result<(), Error<T>> {
+        pub fn create_voting(subject: Voting<T::Hash, T::BlockNumber>) -> Result<(), Error<T>> {
             ensure!(
                 <SomePendingVotings<T>>::get(subject.clone()) == None
                     && <SomeVotingResults<T>>::get(subject.clone()) == None,
@@ -76,18 +89,21 @@ pub mod pallet {
     }
 }
 
-pub trait VotingValidation<AccountId, Hash> {
-    fn validate(&self, account: AccountId, subject: VotingSubject<Hash>) -> bool;
+pub trait VotingValidation<AccountId> {
+    fn validate(&self, account: AccountId) -> bool;
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
-pub struct VotingResult {
-    pub result: bool,
+pub struct VotingResult<BlockNumber> {
+    pub result: u64,
+    // block height at which this proposal was added
+    pub block_number: BlockNumber,
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
-pub struct VotingSubject<Hash> {
+pub struct Voting<Hash, BlockNumber> {
     pub subject_hash: Hash,
+    pub voting_duration: BlockNumber,
 }

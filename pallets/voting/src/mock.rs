@@ -54,9 +54,7 @@ impl system::Config for Test {
 }
 
 impl pallet_voting::Config for Test {
-    const VALIDATION_RULES: Vec<
-        Box<dyn pallet_voting::VotingValidation<Self::AccountId, Self::Hash>>,
-    > = vec![];
+    const VALIDATION_RULES: Vec<Box<dyn pallet_voting::VotingValidation<Self::AccountId>>> = vec![];
 }
 
 // Build genesis storage according to the mock runtime.
