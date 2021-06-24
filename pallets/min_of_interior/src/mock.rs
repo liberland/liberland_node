@@ -19,7 +19,7 @@ frame_support::construct_runtime!(
     {
         System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
         IdentityPallet: pallet_identity::{Pallet, Call, Storage},
-        KycPallet: pallet_kyc::{Pallet, Call, Storage},
+        MinInteriorPallet: pallet_kyc::{Pallet, Call, Storage},
     }
 );
 

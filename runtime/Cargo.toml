@@ -47,7 +47,7 @@ sp-version = {default-features = false, version = '3.0.0', git = 'https://github
 
 # local dependencies
 pallet-identity = {default-features = false, version = '1.0.0', path = '../pallets/identity'}
-pallet-kyc = {default-features = false, version = '1.0.0', path = '../pallets/kyc'}
+pallet-min-interior = {default-features = false, version = '1.0.0', path = '../pallets/min_of_interior'}
 pallet-voting = {default-features = false, version = '1.0.0', path = '../pallets/voting'}
 
 [features]
@@ -60,7 +60,7 @@ runtime-benchmarks = [
 	'hex-literal',
 	'pallet-balances/runtime-benchmarks',
 	'pallet-identity/runtime-benchmarks',
-	'pallet-kyc/runtime-benchmarks',
+	'pallet-min-interior/runtime-benchmarks',
 	'pallet-voting/runtime-benchmarks',
 	'pallet-timestamp/runtime-benchmarks',
 	'sp-runtime/runtime-benchmarks',
@@ -77,7 +77,7 @@ std = [
 	'pallet-randomness-collective-flip/std',
 	'pallet-sudo/std',
 	'pallet-identity/std',
-	'pallet-kyc/std',
+	'pallet-min-interior/std',
 	'pallet-voting/std',
 	'pallet-timestamp/std',
 	'pallet-transaction-payment-rpc-runtime-api/std',

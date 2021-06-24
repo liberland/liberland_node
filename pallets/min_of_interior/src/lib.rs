@@ -115,7 +115,7 @@ pub mod pallet {
 }
 
 sp_api::decl_runtime_apis! {
-    pub trait KycPalletApi<T: Config> {
+    pub trait MinInteriorPalletApi<T: Config> {
         fn get_all_requests() -> BTreeSet<KycRequest<T::AccountId>>;
     }
 }

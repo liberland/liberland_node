@@ -45,7 +45,7 @@ pub use sp_runtime::{Perbill, Permill};
 /// Import the Liberland pallets.
 pub use pallet_identity;
 use pallet_identity::IdentityTrait;
-pub use pallet_kyc;
+pub use pallet_min_interior;
 pub use pallet_voting;
 
 /// An index to a block.
@@ -278,7 +278,7 @@ impl pallet_sudo::Config for Runtime {
 /// Configure the pallet-identity in pallets/identity.
 impl pallet_identity::Config for Runtime {}
 /// Configure the pallet-kyc in pallets/kyc.
-impl pallet_kyc::Config for Runtime {
+impl pallet_min_interior::Config for Runtime {
     type IdentityTrait = IdentityPallet;
 }
 /// Configure the pallet-voting in pallets/voting.
@@ -301,7 +301,7 @@ construct_runtime!(
         Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
         // Liberland pallets
         IdentityPallet: pallet_identity::{Pallet, Call, Config<T>, Storage},
-        KycPallet: pallet_kyc::{Pallet, Call, Storage},
+        MinInteriorPallet: pallet_min_interior::{Pallet, Call, Storage},
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
     }
 );
@@ -471,9 +471,9 @@ impl_runtime_apis! {
 
     // Liberland runtime apis
 
-    impl pallet_kyc::KycPalletApi<Block, Runtime> for Runtime {
-        fn get_all_requests() -> BTreeSet<pallet_kyc::KycRequest<AccountId>> {
-            KycPallet::get_all_requests()
+    impl pallet_min_interior::MinInteriorPalletApi<Block, Runtime> for Runtime {
+        fn get_all_requests() -> BTreeSet<pallet_min_interior::KycRequest<AccountId>> {
+            MinInteriorPallet::get_all_requests()
         }
     }
 
@@ -530,7 +530,7 @@ impl_runtime_apis! {
             add_benchmark!(params, batches, pallet_timestamp, Timestamp);
             // benchmarks for the Liberland pallet
             // add_benchmark!(params, batches, pallet_identity, IdentityPallet);
-            // add_benchmark!(params, batches, pallet_kyc, KycPallet);
+            // add_benchmark!(params, batches, pallet_min_interior, KycPallet);
             // add_benchmark!(params, batches, pallet_voting, VotingPallet);
 
             if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
