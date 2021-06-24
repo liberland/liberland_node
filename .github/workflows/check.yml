@@ -1,4 +1,4 @@
-name: Check Set-Up & Build
+name: Check Set-Up & Build & Tests
 
 # Controls when the action will run.
 on:
@@ -44,3 +44,5 @@ jobs:
         run: >
           pushd node &&
           cargo check --features=runtime-benchmarks --release
+      - name: Tests
+        run: cargo test --all

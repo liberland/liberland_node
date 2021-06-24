@@ -18,5 +18,7 @@ fn basic_voting_test() {
         assert_eq!(VotingPallet::get_active_votings().len(), 1);
 
         assert_err!(VotingPallet::create_voting(subject.clone(), duration));
+
+        assert_err!(VotingPallet::vote(Hashing::hash(&[2; 32]), 1));
     });
 }
