@@ -70,7 +70,7 @@ pub mod pallet {
     impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
         fn build(&self) {
             for (account, id) in self.citizens.iter() {
-                <Pallet<T>>::match_account_to_id(account.clone(), id.clone());
+                <Pallet<T>>::match_account_to_id(account.clone(), *id);
                 <Pallet<T>>::push_identity(*id, IdentityType::Citizen);
             }
             for id in self.reviewers.iter() {
@@ -110,7 +110,7 @@ pub mod pallet {
         }
 
         fn get_passport_id(account: T::AccountId) -> Option<PassportId> {
-            return <SomeAccountToId<T>>::get(account);
+            <SomeAccountToId<T>>::get(account)
         }
 
         fn get_id_identities(id: PassportId) -> BTreeSet<IdentityType> {

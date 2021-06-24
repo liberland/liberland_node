@@ -1,4 +1,4 @@
-name: Check Build & Tests
+name: Check clippy
 
 # Controls when the action will run.
 on:
@@ -15,10 +15,8 @@ on:
 jobs:
   check:
     # The type of runner that the job will run on
-    # runs-on: ubuntu-20.04
-    # Start jobs on self-hosted runners
-    runs-on: self-hosted
-    
+    runs-on: ubuntu-20.04
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -36,7 +34,5 @@ jobs:
           rustup update stable
           rustup target add wasm32-unknown-unknown --toolchain nightly
 
-      - name: Build
-        run: cargo build --all
-      - name: Tests
-        run: cargo test --all
+      # - name: Check clippy
+      #   run: cargo clippy -- -D warnings -A clippy::large-enum-variant -A clippy::too-many-arguments -A clippy::unnecessary-mut-passed -A clippy::type-complexity

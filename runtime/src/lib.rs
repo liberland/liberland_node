@@ -46,6 +46,7 @@ pub use sp_runtime::{Perbill, Permill};
 pub use pallet_identity;
 use pallet_identity::IdentityTrait;
 pub use pallet_kyc;
+pub use pallet_voting;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -280,6 +281,8 @@ impl pallet_identity::Config for Runtime {}
 impl pallet_kyc::Config for Runtime {
     type IdentityTrait = IdentityPallet;
 }
+/// Configure the pallet-voting in pallets/voting.
+impl pallet_voting::Config for Runtime {}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -299,6 +302,7 @@ construct_runtime!(
         // Liberland pallets
         IdentityPallet: pallet_identity::{Pallet, Call, Config<T>, Storage},
         KycPallet: pallet_kyc::{Pallet, Call, Storage},
+        VotingPallet: pallet_voting::{Pallet, Call, Storage},
     }
 );
 
@@ -527,6 +531,7 @@ impl_runtime_apis! {
             // benchmarks for the Liberland pallet
             // add_benchmark!(params, batches, pallet_identity, IdentityPallet);
             // add_benchmark!(params, batches, pallet_kyc, KycPallet);
+            // add_benchmark!(params, batches, pallet_voting, VotingPallet);
 
             if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
             Ok(batches)

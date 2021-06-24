@@ -108,10 +108,7 @@ pub mod pallet {
     impl<T: Config> Pallet<T> {
         pub fn get_all_requests() -> BTreeSet<KycRequest<T::AccountId>> {
             <SomeKycRequests<T>>::iter()
-                .map(|(account, data)| KycRequest {
-                    account: account,
-                    data: data,
-                })
+                .map(|(account, data)| KycRequest { account, data })
                 .collect()
         }
     }
