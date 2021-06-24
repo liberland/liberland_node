@@ -34,6 +34,7 @@ pub mod pallet {
 
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        // Block finalization
         fn on_finalize(block_number: BlockNumberFor<T>) {
             Self::finalize_votings(block_number);
         }
