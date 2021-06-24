@@ -8,10 +8,10 @@
 use std::sync::Arc;
 
 use crate::identity_rpc;
-use crate::kyc_rpc;
+use crate::min_interior_rpc;
 use liberland_node_runtime::{
-    opaque::Block, pallet_identity::IdentityPalletApi, pallet_kyc::KycPalletApi, AccountId,
-    Balance, Index, Runtime,
+    opaque::Block, pallet_identity::IdentityPalletApi, pallet_min_interior::MinInteriorPalletApi,
+    AccountId, Balance, Index, Runtime,
 };
 pub use sc_rpc_api::DenyUnsafe;
 use sp_api::ProvideRuntimeApi;
@@ -38,7 +38,7 @@ where
     C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
     C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
     C::Api: BlockBuilder<Block>,
-    C::Api: KycPalletApi<Block, Runtime>,
+    C::Api: MinInteriorPalletApi<Block, Runtime>,
     C::Api: IdentityPalletApi<Block, Runtime>,
     P: TransactionPool + 'static,
 {
@@ -69,9 +69,11 @@ where
         },
     ));
 
-    io.extend_with(kyc_rpc::KycRpc::to_delegate(kyc_rpc::KycRpcImpl {
-        client: client.clone(),
-    }));
+    io.extend_with(min_interior_rpc::MinInteriorRpc::to_delegate(
+        min_interior_rpc::MinInteriorRpcImpl {
+            client: client.clone(),
+        },
+    ));
 
     // Extend this RPC with a custom API by using the following syntax.
     // `YourRpcStruct` should have a reference to a client, which is needed

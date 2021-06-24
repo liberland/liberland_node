@@ -1,10 +1,10 @@
 [package]
 authors = ['Mr-Leshiy <leshiy12345678@gmail.com>']
-description = 'Kyc pallet.'
+description = 'Ministry of interior pallet.'
 edition = '2018'
 homepage = 'https://substrate.dev'
 license = 'Unlicense'
-name = 'pallet-kyc'
+name = 'pallet-min-interior'
 readme = 'README.md'
 version = '1.0.0'
 

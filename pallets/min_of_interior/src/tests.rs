@@ -30,10 +30,10 @@ fn basic_identity_test() {
             false
         );
 
-        assert_eq!(KycPallet::get_all_requests(), Default::default());
+        assert_eq!(MinInteriorPallet::get_all_requests(), Default::default());
 
         // request kyc
-        assert_ok!(KycPallet::request_kyc(
+        assert_ok!(MinInteriorPallet::request_kyc(
             account1.clone(),
             KycData { id: id1 },
         ));
@@ -41,22 +41,22 @@ fn basic_identity_test() {
         System::set_block_number(2);
 
         assert_err!(
-            KycPallet::request_kyc(account1.clone(), KycData { id: id1 },),
+            MinInteriorPallet::request_kyc(account1.clone(), KycData { id: id1 },),
             <Error<Test>>::AlreadyAplliedKycRequest
         );
 
-        assert_ok!(KycPallet::request_kyc(
+        assert_ok!(MinInteriorPallet::request_kyc(
             account2.clone(),
             KycData { id: id2 },
         ));
 
         assert_err!(
-            KycPallet::request_kyc(account2.clone(), KycData { id: id2 },),
+            MinInteriorPallet::request_kyc(account2.clone(), KycData { id: id2 },),
             <Error<Test>>::AlreadyAplliedKycRequest
         );
 
         // get KYC request data
-        let requests = KycPallet::get_all_requests();
+        let requests = MinInteriorPallet::get_all_requests();
 
         assert_eq!(requests.len(), 2);
         let mut it = requests.iter();
@@ -70,20 +70,20 @@ fn basic_identity_test() {
         assert_eq!(request2.data.id, id2);
 
         assert_err!(
-            KycPallet::kyc_response(account1.clone(), request1.clone(), true),
+            MinInteriorPallet::kyc_response(account1.clone(), request1.clone(), true),
             <Error<Test>>::AccountCannotProcessKyc
         );
         assert_err!(
-            KycPallet::kyc_response(account2.clone(), request2.clone(), true),
+            MinInteriorPallet::kyc_response(account2.clone(), request2.clone(), true),
             <Error<Test>>::AccountCannotProcessKyc
         );
 
-        assert_ok!(KycPallet::kyc_response(
+        assert_ok!(MinInteriorPallet::kyc_response(
             reviewer_account.clone(),
             request1.clone(),
             true
         ));
-        assert_ok!(KycPallet::kyc_response(
+        assert_ok!(MinInteriorPallet::kyc_response(
             reviewer_account.clone(),
             request2.clone(),
             false
@@ -98,22 +98,25 @@ fn basic_identity_test() {
             false
         );
 
-        assert_eq!(KycPallet::get_all_requests(), Default::default());
+        assert_eq!(MinInteriorPallet::get_all_requests(), Default::default());
 
         assert_err!(
-            KycPallet::kyc_response(reviewer_account.clone(), request1, true),
+            MinInteriorPallet::kyc_response(reviewer_account.clone(), request1, true),
             <Error<Test>>::RequestDoesNotExist
         );
         assert_err!(
-            KycPallet::kyc_response(reviewer_account, request2, false),
+            MinInteriorPallet::kyc_response(reviewer_account, request2, false),
             <Error<Test>>::RequestDoesNotExist
         );
 
         assert_err!(
-            KycPallet::request_kyc(account1, KycData { id: id1 }),
+            MinInteriorPallet::request_kyc(account1, KycData { id: id1 }),
             <Error<Test>>::AccoundIdAlreadyUsed
         );
 
-        assert_ok!(KycPallet::request_kyc(account2, KycData { id: id2 }));
+        assert_ok!(MinInteriorPallet::request_kyc(
+            account2,
+            KycData { id: id2 }
+        ));
     });
 }

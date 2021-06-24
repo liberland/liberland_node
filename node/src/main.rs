@@ -7,7 +7,7 @@ mod service;
 mod cli;
 mod command;
 mod identity_rpc;
-mod kyc_rpc;
+mod min_interior_rpc;
 mod rpc;
 
 fn main() -> sc_cli::Result<()> {

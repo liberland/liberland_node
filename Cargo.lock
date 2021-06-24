@@ -2813,7 +2813,7 @@ dependencies = [
  "pallet-balances",
  "pallet-grandpa",
  "pallet-identity",
- "pallet-kyc",
+ "pallet-min-interior",
  "pallet-randomness-collective-flip",
  "pallet-sudo",
  "pallet-timestamp",
@@ -3995,7 +3995,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-kyc"
+name = "pallet-min-interior"
 version = "1.0.0"
 dependencies = [
  "frame-benchmarking",
