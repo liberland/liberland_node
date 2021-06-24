@@ -114,6 +114,9 @@ fn basic_identity_test() {
             <Error<Test>>::AccoundIdAlreadyUsed
         );
 
-        assert_ok!(MinInteriorPallet::request_kyc(account2, KycData { id: id2 }));
+        assert_ok!(MinInteriorPallet::request_kyc(
+            account2,
+            KycData { id: id2 }
+        ));
     });
 }
