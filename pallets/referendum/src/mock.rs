@@ -64,7 +64,9 @@ impl pallet_referendum::Config for Test {
 
 impl pallet_identity::Config for Test {}
 
-impl pallet_voting::Config for Test {}
+impl pallet_voting::Config for Test {
+    type FinalizeVotingDispatch = ReferendumPallet;
+}
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {

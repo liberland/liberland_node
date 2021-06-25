@@ -283,7 +283,9 @@ impl pallet_min_interior::Config for Runtime {
     type IdentityTrait = IdentityPallet;
 }
 /// Configure the pallet-voting in pallets/voting.
-impl pallet_voting::Config for Runtime {}
+impl pallet_voting::Config for Runtime {
+    type FinalizeVotingDispatch = ();
+}
 /// Configure the pallet-referendum in pallets/referendum.
 impl pallet_referendum::Config for Runtime {
     const PETITION_DURATION: BlockNumber = 100;

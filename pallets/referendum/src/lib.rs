@@ -1,11 +1,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
-use pallet_identity::IdentityTrait;
-use pallet_identity::IdentityType;
-use pallet_voting::VotingTrait;
+use pallet_identity::{IdentityTrait, IdentityType};
+use pallet_voting::{VotingSettings, VotingTrait};
 use sp_runtime::traits::Hash;
-use sp_std::vec::Vec;
+use sp_std::{
+    cmp::{Ord, PartialOrd},
+    vec::Vec,
+};
 
 #[cfg(test)]
 mod mock;
@@ -41,13 +44,21 @@ pub mod pallet {
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
+    #[pallet::storage]
+    type SomeActivePetitions<T: Config> =
+        StorageMap<_, Blake2_128Concat, T::Hash, Suggestion, OptionQuery>;
+
+    #[pallet::storage]
+    type SomeActiveReferendums<T: Config> =
+        StorageMap<_, Blake2_128Concat, T::Hash, Suggestion, OptionQuery>;
+
     #[pallet::call]
     impl<T: Config> Pallet<T> {
         // propose a
         #[pallet::weight(1)]
         pub(super) fn suggest_petition(
             origin: OriginFor<T>,
-            petition: Vec<u8>,
+            petition: Suggestion,
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
 
@@ -56,7 +67,9 @@ pub mod pallet {
                 <Error<T>>::AccountCannotSuggestPetition,
             );
 
-            let petition_hash = T::Hashing::hash(&petition[..]);
+            let petition_hash = T::Hashing::hash(&petition.data[..]);
+
+            <SomeActivePetitions<T>>::insert(petition_hash.clone(), petition);
 
             T::VotingTrait::create_voting(petition_hash, T::PETITION_DURATION)?;
 
@@ -65,4 +78,25 @@ pub mod pallet {
     }
 
     impl<T: Config> Pallet<T> {}
+
+    impl<T: Config> pallet_voting::FinalizeVotingDispatchTrait<T> for Pallet<T> {
+        fn finalize_voting(subject: T::Hash, voting_setting: VotingSettings<T::BlockNumber>) {
+            match <SomeActivePetitions<T>>::get(subject) {
+                Some(petition) => {
+                    return;
+                }
+                None => {}
+            }
+            match <SomeActiveReferendums<T>>::get(subject) {
+                Some(referendum) => {}
+                None => {}
+            }
+        }
+    }
+}
+
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
+pub struct Suggestion {
+    pub data: Vec<u8>,
 }

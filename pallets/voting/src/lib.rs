@@ -2,14 +2,19 @@
 
 use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
-use sp_std::cmp::{Ord, PartialOrd};
-use sp_std::collections::btree_map::BTreeMap;
+use sp_std::{
+    cmp::{Ord, PartialOrd},
+    collections::btree_map::BTreeMap,
+};
 
 #[cfg(test)]
 mod mock;
 
 #[cfg(test)]
 mod tests;
+
+pub mod finalize_voiting_trait;
+pub use finalize_voiting_trait::FinalizeVotingDispatchTrait;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -18,7 +23,9 @@ pub mod pallet {
     use frame_system::pallet_prelude::*;
 
     #[pallet::config]
-    pub trait Config: frame_system::Config {}
+    pub trait Config: frame_system::Config {
+        type FinalizeVotingDispatch: FinalizeVotingDispatchTrait<Self>;
+    }
 
     #[pallet::pallet]
     #[pallet::generate_store(trait Store)]
@@ -60,6 +67,7 @@ pub mod pallet {
                 {
                     <SomeActiveVotings<T>>::remove(subject.clone());
                     <SomeVotingResults<T>>::insert(subject.clone(), voting_settings.clone());
+                    <T::FinalizeVotingDispatch>::finalize_voting(subject, voting_settings);
                 }
             }
         }

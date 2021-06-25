@@ -53,7 +53,9 @@ impl system::Config for Test {
     type OnSetCode = ();
 }
 
-impl pallet_voting::Config for Test {}
+impl pallet_voting::Config for Test {
+    type FinalizeVotingDispatch = ();
+}
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
