@@ -83,7 +83,7 @@ pub mod pallet {
     #[pallet::call]
     impl<T: Config> Pallet<T> {}
 
-    impl<T: Config> IdentityTrait<T::AccountId> for Pallet<T> {
+    impl<T: Config> IdentityTrait<T> for Pallet<T> {
         fn match_account_to_id(account: T::AccountId, id: PassportId) {
             assert!(
                 <SomeAccountToId<T>>::get(account.clone()) == None,
@@ -138,22 +138,22 @@ pub mod pallet {
     }
 }
 
-pub trait IdentityTrait<AccountId> {
-    fn match_account_to_id(account: AccountId, id: PassportId);
+pub trait IdentityTrait<T: Config> {
+    fn match_account_to_id(account: T::AccountId, id: PassportId);
 
     fn push_identity(id: PassportId, id_type: IdentityType);
 
     fn remove_identity(id: PassportId, id_type: IdentityType);
 
-    fn get_passport_id(account: AccountId) -> Option<PassportId>;
+    fn get_passport_id(account: T::AccountId) -> Option<PassportId>;
 
     fn get_id_identities(id: PassportId) -> BTreeSet<IdentityType>;
 
     fn check_id_identity(id: PassportId, id_type: IdentityType) -> bool;
 
-    fn get_account_identities(account: AccountId) -> BTreeSet<IdentityType>;
+    fn get_account_identities(account: T::AccountId) -> BTreeSet<IdentityType>;
 
-    fn check_account_indetity(account: AccountId, id_type: IdentityType) -> bool;
+    fn check_account_indetity(account: T::AccountId, id_type: IdentityType) -> bool;
 }
 
 sp_api::decl_runtime_apis! {

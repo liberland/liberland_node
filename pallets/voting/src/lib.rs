@@ -65,16 +65,16 @@ pub mod pallet {
         }
     }
 
-    impl<T: Config> Pallet<T> {
-        pub fn get_active_votings() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>> {
+    impl<T: Config> VotingTrait<T> for Pallet<T> {
+        fn get_active_votings() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>> {
             <SomeActiveVotings<T>>::iter().collect()
         }
 
-        pub fn get_voting_results() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>> {
+        fn get_voting_results() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>> {
             <SomeVotingResults<T>>::iter().collect()
         }
 
-        pub fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>> {
+        fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>> {
             ensure!(
                 <SomeActiveVotings<T>>::get(subject.clone()) == None
                     && <SomeVotingResults<T>>::get(subject.clone()) == None,
@@ -94,7 +94,7 @@ pub mod pallet {
             Ok(())
         }
 
-        pub fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>> {
+        fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>> {
             match <SomeActiveVotings<T>>::get(subject.clone()) {
                 Some(mut settings) => {
                     settings.result += power;
@@ -105,6 +105,16 @@ pub mod pallet {
             }
         }
     }
+}
+
+pub trait VotingTrait<T: Config> {
+    fn get_active_votings() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>>;
+
+    fn get_voting_results() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>>;
+
+    fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>>;
+
+    fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>>;
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]

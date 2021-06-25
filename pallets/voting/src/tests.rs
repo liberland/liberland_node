@@ -1,4 +1,5 @@
 use crate::mock::*;
+use crate::*;
 use assert::assert_err;
 use frame_support::{assert_ok, traits::OnFinalize};
 use sp_runtime::traits::Hash;

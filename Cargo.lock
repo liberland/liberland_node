@@ -4025,6 +4025,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-referendum"
+version = "1.0.0"
+dependencies = [
+ "assert",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-identity",
+ "pallet-voting",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-session"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate.git?tag=monthly-2021-05#70ef0afc86cdef0cba09336acffb08bff08540aa"
