@@ -46,6 +46,7 @@ pub use sp_runtime::{Perbill, Permill};
 pub use pallet_identity;
 use pallet_identity::IdentityTrait;
 pub use pallet_min_interior;
+pub use pallet_referendum;
 pub use pallet_voting;
 
 /// An index to a block.
@@ -283,6 +284,13 @@ impl pallet_min_interior::Config for Runtime {
 }
 /// Configure the pallet-voting in pallets/voting.
 impl pallet_voting::Config for Runtime {}
+/// Configure the pallet-referendum in pallets/referendum.
+impl pallet_referendum::Config for Runtime {
+    const PETITION_DURATION: BlockNumber = 100;
+    const REFERENDUM_DURATION: BlockNumber = 500;
+    type IdentityTrait = IdentityPallet;
+    type VotingTrait = VotingPallet;
+}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -303,6 +311,7 @@ construct_runtime!(
         IdentityPallet: pallet_identity::{Pallet, Call, Config<T>, Storage},
         MinInteriorPallet: pallet_min_interior::{Pallet, Call, Storage},
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
+        ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
     }
 );
 

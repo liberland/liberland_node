@@ -1,1 +1,1 @@
-# KYC pallet
+# Referendum pallet

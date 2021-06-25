@@ -2815,6 +2815,7 @@ dependencies = [
  "pallet-identity",
  "pallet-min-interior",
  "pallet-randomness-collective-flip",
+ "pallet-referendum",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",

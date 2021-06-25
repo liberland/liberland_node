@@ -55,7 +55,12 @@ impl system::Config for Test {
     type OnSetCode = ();
 }
 
-impl pallet_referendum::Config for Test {}
+impl pallet_referendum::Config for Test {
+    const PETITION_DURATION: Self::BlockNumber = 10;
+    const REFERENDUM_DURATION: Self::BlockNumber = 20;
+    type IdentityTrait = IdentityPallet;
+    type VotingTrait = VotingPallet;
+}
 
 impl pallet_identity::Config for Test {}
 

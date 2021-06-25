@@ -49,6 +49,7 @@ sp-version = {default-features = false, version = '3.0.0', git = 'https://github
 pallet-identity = {default-features = false, version = '1.0.0', path = '../pallets/identity'}
 pallet-min-interior = {default-features = false, version = '1.0.0', path = '../pallets/min_of_interior'}
 pallet-voting = {default-features = false, version = '1.0.0', path = '../pallets/voting'}
+pallet-referendum = {default-features = false, version = '1.0.0', path = '../pallets/referendum'}
 
 [features]
 default = ['std']

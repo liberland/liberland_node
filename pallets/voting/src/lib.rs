@@ -59,7 +59,7 @@ pub mod pallet {
                     <= block_number
                 {
                     <SomeActiveVotings<T>>::remove(subject.clone());
-                    <SomeVotingResults<T>>::insert(subject, voting_settings);
+                    <SomeVotingResults<T>>::insert(subject.clone(), voting_settings.clone());
                 }
             }
         }
