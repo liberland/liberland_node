@@ -39,6 +39,8 @@ pub mod pallet {
     #[pallet::error]
     pub enum Error<T> {
         AccountCannotSuggestPetition,
+        AccountCannotVote,
+        SubjectDoesNotExist,
     }
 
     #[pallet::hooks]
@@ -54,7 +56,7 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        // propose a
+        // propose a petition
         #[pallet::weight(1)]
         pub(super) fn suggest_petition(
             origin: OriginFor<T>,
@@ -75,6 +77,29 @@ pub mod pallet {
 
             Ok(().into())
         }
+
+        #[pallet::weight(1)]
+        pub(super) fn vote(
+            origin: OriginFor<T>,
+            subject_hash: T::Hash,
+        ) -> DispatchResultWithPostInfo {
+            let sender = ensure_signed(origin)?;
+
+            ensure!(
+                T::IdentityTrait::check_account_indetity(sender, IdentityType::Citizen),
+                <Error<T>>::AccountCannotVote,
+            );
+
+            ensure!(
+                <SomeActivePetitions<T>>::get(subject_hash) != None
+                    || <SomeActiveReferendums<T>>::get(subject_hash) != None,
+                <Error<T>>::SubjectDoesNotExist,
+            );
+
+            T::VotingTrait::vote(subject_hash, 1)?;
+
+            Ok(().into())
+        }
     }
 
     impl<T: Config> Pallet<T> {}
@@ -83,12 +108,21 @@ pub mod pallet {
         fn finalize_voting(subject: T::Hash, voting_setting: VotingSettings<T::BlockNumber>) {
             match <SomeActivePetitions<T>>::get(subject) {
                 Some(petition) => {
+                    // more than 10%
+                    if voting_setting.result
+                        >= ((T::IdentityTrait::get_citizens_amount() as f64) * 0.1) as u64
+                    {
+                        <SomeActiveReferendums<T>>::insert(subject, petition);
+                    }
+                    <SomeActivePetitions<T>>::remove(subject);
                     return;
                 }
                 None => {}
             }
             match <SomeActiveReferendums<T>>::get(subject) {
-                Some(referendum) => {}
+                Some(_) => {
+                    <SomeActiveReferendums<T>>::remove(subject);
+                }
                 None => {}
             }
         }

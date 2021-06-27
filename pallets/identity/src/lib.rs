@@ -135,6 +135,13 @@ pub mod pallet {
                 None => false,
             }
         }
+
+        fn get_citizens_amount() -> u64 {
+            // TODO: store the size of the SomeAccountIdentities
+            let mut res: u64 = 0;
+            <SomeAccountIdentities<T>>::iter().for_each(|_| res += 1);
+            res
+        }
     }
 }
 
@@ -154,6 +161,8 @@ pub trait IdentityTrait<T: Config> {
     fn get_account_identities(account: T::AccountId) -> BTreeSet<IdentityType>;
 
     fn check_account_indetity(account: T::AccountId, id_type: IdentityType) -> bool;
+
+    fn get_citizens_amount() -> u64;
 }
 
 sp_api::decl_runtime_apis! {
