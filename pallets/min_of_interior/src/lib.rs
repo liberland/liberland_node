@@ -2,11 +2,11 @@
 
 use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
-use pallet_identity::IdentityTrait;
-use pallet_identity::IdentityType;
-use pallet_identity::PassportId;
-use sp_std::cmp::{Ord, PartialOrd};
-use sp_std::collections::btree_set::BTreeSet;
+use pallet_identity::{IdentityTrait, IdentityType, PassportId};
+use sp_std::{
+    cmp::{Ord, PartialOrd},
+    collections::btree_set::BTreeSet,
+};
 
 #[cfg(test)]
 mod mock;
