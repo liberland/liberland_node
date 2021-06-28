@@ -29,8 +29,17 @@ pub mod pallet {
         frame_system::Config + pallet_voting::Config + pallet_identity::Config
     {
         const PETITION_DURATION: Self::BlockNumber;
+
         const REFERENDUM_DURATION: Self::BlockNumber;
+
+        // 50%
+        const REFERENDUM_ACCEPTANCE_PERCENTAGE: f64 = 0.5;
+
+        // 10%
+        const PETITION_ACCEPTANCE_PERCENTAGE: f64 = 0.1;
+
         type VotingTrait: pallet_voting::VotingTrait<Self>;
+
         type IdentityTrait: pallet_identity::IdentityTrait<Self>;
     }
 
@@ -86,7 +95,6 @@ pub mod pallet {
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
 
-            // TODO: add check that suggestion exists as a active petition or referendum
             ensure!(
                 T::IdentityTrait::check_account_indetity(sender, IdentityType::Citizen),
                 <Error<T>>::AccountCannotSuggestPetition,
@@ -122,7 +130,7 @@ pub mod pallet {
             let mut voted = <SomeVotedCitizens<T>>::get(subject_hash);
             let passport_id = T::IdentityTrait::get_passport_id(sender).unwrap();
 
-            ensure!(voted.contains(&passport_id), <Error<T>>::AlreadyVoted);
+            ensure!(!voted.contains(&passport_id), <Error<T>>::AlreadyVoted);
 
             T::VotingTrait::vote(subject_hash, 1)?;
             voted.insert(passport_id);
@@ -154,14 +162,15 @@ pub mod pallet {
         fn finalize_voting(subject: T::Hash, voting_setting: VotingSettings<T::BlockNumber>) {
             match <SomeActivePetitions<T>>::get(subject) {
                 Some(petition) => {
-                    // TODO: make a constant for the 0.1
                     // more than 10%
                     if voting_setting.result
-                        >= ((T::IdentityTrait::get_citizens_amount() as f64) * 0.1) as u64
+                        >= ((T::IdentityTrait::get_citizens_amount() as f64)
+                            * T::PETITION_ACCEPTANCE_PERCENTAGE) as u64
                     {
                         <SomeActiveReferendums<T>>::insert(subject, petition);
                         T::VotingTrait::create_voting(subject, T::REFERENDUM_DURATION).unwrap();
                     }
+                    <SomeVotedCitizens<T>>::remove(subject);
                     <SomeActivePetitions<T>>::remove(subject);
                     return;
                 }
@@ -169,19 +178,31 @@ pub mod pallet {
             }
             match <SomeActiveReferendums<T>>::get(subject) {
                 Some(referendum) => {
-                    // TODO: make a constant for the 0.5
                     // more than 50%
                     if voting_setting.result
-                        >= ((T::IdentityTrait::get_citizens_amount() as f64) * 0.5) as u64
+                        >= ((T::IdentityTrait::get_citizens_amount() as f64)
+                            * T::REFERENDUM_ACCEPTANCE_PERCENTAGE) as u64
                     {
                         <SomeSuccessfulReferendums<T>>::insert(subject, referendum);
                     }
-
+                    <SomeVotedCitizens<T>>::remove(subject);
                     <SomeActiveReferendums<T>>::remove(subject);
                 }
                 None => {}
             }
         }
+    }
+}
+
+sp_api::decl_runtime_apis! {
+    pub trait ReferendumPalletApi<T: Config> {
+        fn get_suggestion_hash(suggestion: &Suggestion) -> T::Hash;
+
+        fn get_active_petitions() -> BTreeMap<T::Hash, Suggestion>;
+
+        fn get_active_referendums() -> BTreeMap<T::Hash, Suggestion>;
+
+        fn get_successfull_referendums() -> BTreeMap<T::Hash, Suggestion>;
     }
 }
 

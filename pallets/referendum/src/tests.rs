@@ -1,13 +1,12 @@
 use crate::mock::*;
 use crate::*;
-use frame_support::{assert_ok, traits::OnFinalize};
+use frame_support::{assert_err, assert_ok, traits::OnFinalize};
 use frame_system::ensure_signed;
 
 #[test]
 fn basic_referendum_test() {
     new_test_ext().execute_with(|| {
         // create 10 citizens
-
         let account1 = Origin::signed(1);
         let id1 = [1; 32];
         IdentityPallet::match_account_to_id(ensure_signed(account1.clone()).unwrap(), id1);
@@ -96,4 +95,42 @@ fn basic_referendum_test() {
     });
 }
 
-// TODO add error tests
+#[test]
+fn referendum_error_test() {
+    new_test_ext().execute_with(|| {
+        let account1 = Origin::signed(1);
+        let id1 = [1; 32];
+        let sug = Suggestion { data: vec![] };
+        let sug_hash = ReferendumPallet::get_suggestion_hash(&sug);
+
+        assert_err!(
+            ReferendumPallet::suggest_petition(account1.clone(), sug.clone()),
+            <Error<Test>>::AccountCannotSuggestPetition
+        );
+
+        assert_err!(
+            ReferendumPallet::vote(account1.clone(), sug_hash),
+            <Error<Test>>::AccountCannotVote
+        );
+
+        IdentityPallet::match_account_to_id(ensure_signed(account1.clone()).unwrap(), id1);
+        IdentityPallet::push_identity(id1.clone(), IdentityType::Citizen);
+
+        assert_err!(
+            ReferendumPallet::vote(account1.clone(), sug_hash),
+            <Error<Test>>::SubjectDoesNotExist
+        );
+
+        assert_ok!(ReferendumPallet::suggest_petition(
+            account1.clone(),
+            sug.clone()
+        ));
+
+        assert_ok!(ReferendumPallet::vote(account1.clone(), sug_hash));
+
+        assert_err!(
+            ReferendumPallet::vote(account1.clone(), sug_hash),
+            <Error<Test>>::AlreadyVoted
+        );
+    });
+}
