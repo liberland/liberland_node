@@ -33,8 +33,8 @@ pub mod pallet {
 
     #[pallet::error]
     pub enum Error<T> {
-        // emits when from provided VotingSubject has been applied
-        VotingSubjectHasBeenApplied,
+        // emits when from provided VotingSubject has been created
+        VotingHasBeenCreated,
         // emits when provided Voting subject does not exist
         VotingSubjectDoesNotExist,
     }
@@ -51,10 +51,6 @@ pub mod pallet {
     type SomeActiveVotings<T: Config> =
         StorageMap<_, Blake2_128Concat, T::Hash, VotingSettings<T::BlockNumber>, OptionQuery>;
 
-    #[pallet::storage]
-    type SomeVotingResults<T: Config> =
-        StorageMap<_, Blake2_128Concat, T::Hash, VotingSettings<T::BlockNumber>, OptionQuery>;
-
     #[pallet::call]
     impl<T: Config> Pallet<T> {}
 
@@ -66,7 +62,6 @@ pub mod pallet {
                     <= block_number
                 {
                     <SomeActiveVotings<T>>::remove(subject.clone());
-                    <SomeVotingResults<T>>::insert(subject.clone(), voting_settings.clone());
                     <T::FinalizeVotingDispatch>::finalize_voting(subject, voting_settings);
                 }
             }
@@ -78,15 +73,10 @@ pub mod pallet {
             <SomeActiveVotings<T>>::iter().collect()
         }
 
-        fn get_voting_results() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>> {
-            <SomeVotingResults<T>>::iter().collect()
-        }
-
         fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>> {
             ensure!(
-                <SomeActiveVotings<T>>::get(subject.clone()) == None
-                    && <SomeVotingResults<T>>::get(subject.clone()) == None,
-                <Error<T>>::VotingSubjectHasBeenApplied
+                <SomeActiveVotings<T>>::get(subject.clone()) == None,
+                <Error<T>>::VotingHasBeenCreated
             );
 
             let block_number = <frame_system::Pallet<T>>::block_number();
@@ -117,8 +107,6 @@ pub mod pallet {
 
 pub trait VotingTrait<T: Config> {
     fn get_active_votings() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>>;
-
-    fn get_voting_results() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>>;
 
     fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>>;
 

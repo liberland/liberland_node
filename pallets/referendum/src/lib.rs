@@ -2,12 +2,13 @@
 
 use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
-use pallet_identity::{IdentityTrait, IdentityType};
+use pallet_identity::{IdentityTrait, IdentityType, PassportId};
 use pallet_voting::{VotingSettings, VotingTrait};
 use sp_runtime::traits::Hash;
 use sp_std::{
     cmp::{Ord, PartialOrd},
     collections::btree_map::BTreeMap,
+    collections::btree_set::BTreeSet,
     vec::Vec,
 };
 
@@ -42,6 +43,7 @@ pub mod pallet {
         AccountCannotSuggestPetition,
         AccountCannotVote,
         SubjectDoesNotExist,
+        AlreadyVoted,
     }
 
     #[pallet::hooks]
@@ -58,6 +60,21 @@ pub mod pallet {
     #[pallet::storage]
     type SomeSuccessfulReferendums<T: Config> =
         StorageMap<_, Blake2_128Concat, T::Hash, Suggestion, OptionQuery>;
+
+    #[pallet::type_value]
+    pub fn VotedCitizensDefault() -> BTreeSet<PassportId> {
+        Default::default()
+    }
+
+    #[pallet::storage]
+    type SomeVotedCitizens<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        T::Hash,
+        BTreeSet<PassportId>,
+        ValueQuery,
+        VotedCitizensDefault,
+    >;
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
@@ -92,7 +109,7 @@ pub mod pallet {
             let sender = ensure_signed(origin)?;
 
             ensure!(
-                T::IdentityTrait::check_account_indetity(sender, IdentityType::Citizen),
+                T::IdentityTrait::check_account_indetity(sender.clone(), IdentityType::Citizen),
                 <Error<T>>::AccountCannotVote,
             );
 
@@ -102,14 +119,21 @@ pub mod pallet {
                 <Error<T>>::SubjectDoesNotExist,
             );
 
+            let mut voted = <SomeVotedCitizens<T>>::get(subject_hash);
+            let passport_id = T::IdentityTrait::get_passport_id(sender).unwrap();
+
+            ensure!(voted.contains(&passport_id), <Error<T>>::AlreadyVoted);
+
             T::VotingTrait::vote(subject_hash, 1)?;
+            voted.insert(passport_id);
+            <SomeVotedCitizens<T>>::insert(subject_hash, voted);
 
             Ok(().into())
         }
     }
 
     impl<T: Config> Pallet<T> {
-        pub fn get_suggestion_hash(suggestion: Suggestion) -> T::Hash {
+        pub fn get_suggestion_hash(suggestion: &Suggestion) -> T::Hash {
             T::Hashing::hash(&suggestion.data[..])
         }
 
@@ -136,6 +160,7 @@ pub mod pallet {
                         >= ((T::IdentityTrait::get_citizens_amount() as f64) * 0.1) as u64
                     {
                         <SomeActiveReferendums<T>>::insert(subject, petition);
+                        T::VotingTrait::create_voting(subject, T::REFERENDUM_DURATION).unwrap();
                     }
                     <SomeActivePetitions<T>>::remove(subject);
                     return;
@@ -149,7 +174,7 @@ pub mod pallet {
                     if voting_setting.result
                         >= ((T::IdentityTrait::get_citizens_amount() as f64) * 0.5) as u64
                     {
-                        <SomeActiveReferendums<T>>::insert(subject, referendum);
+                        <SomeSuccessfulReferendums<T>>::insert(subject, referendum);
                     }
 
                     <SomeActiveReferendums<T>>::remove(subject);

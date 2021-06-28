@@ -26,7 +26,7 @@ pub mod pallet {
     pub struct Pallet<T>(_);
 
     #[pallet::type_value]
-    pub fn IdentityTypesDefault<T: Config>() -> BTreeSet<IdentityType> {
+    pub fn IdentityTypesDefault() -> BTreeSet<IdentityType> {
         Default::default()
     }
 
@@ -37,7 +37,7 @@ pub mod pallet {
         PassportId,
         BTreeSet<IdentityType>,
         ValueQuery,
-        IdentityTypesDefault<T>,
+        IdentityTypesDefault,
     >;
 
     #[pallet::storage]
