@@ -3,6 +3,8 @@ use crate::*;
 use frame_support::{assert_err, assert_ok, traits::OnFinalize};
 use frame_system::ensure_signed;
 
+type Hashing = <Test as frame_system::Config>::Hashing;
+
 #[test]
 fn basic_referendum_test() {
     new_test_ext().execute_with(|| {
@@ -63,7 +65,7 @@ fn basic_referendum_test() {
 
         // suggest petition
         let sug = Suggestion { data: vec![] };
-        let sug_hash = ReferendumPallet::get_suggestion_hash(&sug);
+        let sug_hash = Hashing::hash(&sug.data[..]);
 
         assert_ok!(ReferendumPallet::suggest_petition(
             account1.clone(),

@@ -511,10 +511,6 @@ impl_runtime_apis! {
     }
 
     impl pallet_referendum::ReferendumPalletApi<Block, Runtime> for Runtime {
-        fn get_suggestion_hash(suggestion: &pallet_referendum::Suggestion) -> Hash {
-            ReferendumPallet::get_suggestion_hash(suggestion)
-        }
-
         fn get_active_petitions() -> BTreeMap<Hash, pallet_referendum::Suggestion> {
             ReferendumPallet::get_active_petitions()
         }

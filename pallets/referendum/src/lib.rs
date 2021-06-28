@@ -196,8 +196,6 @@ pub mod pallet {
 
 sp_api::decl_runtime_apis! {
     pub trait ReferendumPalletApi<T: Config> {
-        fn get_suggestion_hash(suggestion: &Suggestion) -> T::Hash;
-
         fn get_active_petitions() -> BTreeMap<T::Hash, Suggestion>;
 
         fn get_active_referendums() -> BTreeMap<T::Hash, Suggestion>;
