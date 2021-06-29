@@ -1,4 +1,4 @@
-use crate as pallet_voting;
+use crate as pallet_referendum;
 use frame_support::parameter_types;
 use frame_system as system;
 use sp_core::H256;
@@ -18,7 +18,9 @@ frame_support::construct_runtime!(
         UncheckedExtrinsic = UncheckedExtrinsic,
     {
         System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+        IdentityPallet: pallet_identity::{Pallet, Call, Storage},
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
+        ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
     }
 );
 
@@ -53,8 +55,17 @@ impl system::Config for Test {
     type OnSetCode = ();
 }
 
+impl pallet_referendum::Config for Test {
+    const PETITION_DURATION: Self::BlockNumber = 10;
+    const REFERENDUM_DURATION: Self::BlockNumber = 20;
+    type IdentityTrait = IdentityPallet;
+    type VotingTrait = VotingPallet;
+}
+
+impl pallet_identity::Config for Test {}
+
 impl pallet_voting::Config for Test {
-    type FinalizeVotingDispatch = ();
+    type FinalizeVotingDispatch = ReferendumPallet;
 }
 
 // Build genesis storage according to the mock runtime.

@@ -19,7 +19,7 @@ use sp_runtime::{
     transaction_validity::{TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
 };
-use sp_std::collections::btree_set::BTreeSet;
+use sp_std::collections::{btree_map::BTreeMap, btree_set::BTreeSet};
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -46,6 +46,7 @@ pub use sp_runtime::{Perbill, Permill};
 pub use pallet_identity;
 use pallet_identity::IdentityTrait;
 pub use pallet_min_interior;
+pub use pallet_referendum;
 pub use pallet_voting;
 
 /// An index to a block.
@@ -282,7 +283,20 @@ impl pallet_min_interior::Config for Runtime {
     type IdentityTrait = IdentityPallet;
 }
 /// Configure the pallet-voting in pallets/voting.
-impl pallet_voting::Config for Runtime {}
+impl pallet_voting::Config for Runtime {
+    type FinalizeVotingDispatch = ReferendumPallet;
+}
+/// Configure the pallet-referendum in pallets/referendum.
+impl pallet_referendum::Config for Runtime {
+    // 72 hours
+    const PETITION_DURATION: BlockNumber =
+        (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    // 72 hours
+    const REFERENDUM_DURATION: BlockNumber =
+        (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    type IdentityTrait = IdentityPallet;
+    type VotingTrait = VotingPallet;
+}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -303,6 +317,7 @@ construct_runtime!(
         IdentityPallet: pallet_identity::{Pallet, Call, Config<T>, Storage},
         MinInteriorPallet: pallet_min_interior::{Pallet, Call, Storage},
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
+        ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
     }
 );
 
@@ -499,6 +514,20 @@ impl_runtime_apis! {
         }
     }
 
+    impl pallet_referendum::ReferendumPalletApi<Block, Runtime> for Runtime {
+        fn get_active_petitions() -> BTreeMap<Hash, pallet_referendum::Suggestion> {
+            ReferendumPallet::get_active_petitions()
+        }
+
+        fn get_active_referendums() -> BTreeMap<Hash, pallet_referendum::Suggestion> {
+            ReferendumPallet::get_active_referendums()
+        }
+
+        fn get_successfull_referendums() -> BTreeMap<Hash, pallet_referendum::Suggestion> {
+            ReferendumPallet::get_successfull_referendums()
+        }
+    }
+
     #[cfg(feature = "runtime-benchmarks")]
     impl frame_benchmarking::Benchmark<Block> for Runtime {
         fn dispatch_benchmark(
@@ -529,9 +558,6 @@ impl_runtime_apis! {
             add_benchmark!(params, batches, pallet_balances, Balances);
             add_benchmark!(params, batches, pallet_timestamp, Timestamp);
             // benchmarks for the Liberland pallet
-            // add_benchmark!(params, batches, pallet_identity, IdentityPallet);
-            // add_benchmark!(params, batches, pallet_min_interior, KycPallet);
-            // add_benchmark!(params, batches, pallet_voting, VotingPallet);
 
             if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
             Ok(batches)

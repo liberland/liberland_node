@@ -2,14 +2,19 @@
 
 use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
-use sp_std::cmp::{Ord, PartialOrd};
-use sp_std::collections::btree_map::BTreeMap;
+use sp_std::{
+    cmp::{Ord, PartialOrd},
+    collections::btree_map::BTreeMap,
+};
 
 #[cfg(test)]
 mod mock;
 
 #[cfg(test)]
 mod tests;
+
+pub mod finalize_voiting_trait;
+pub use finalize_voiting_trait::FinalizeVotingDispatchTrait;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -18,7 +23,9 @@ pub mod pallet {
     use frame_system::pallet_prelude::*;
 
     #[pallet::config]
-    pub trait Config: frame_system::Config {}
+    pub trait Config: frame_system::Config {
+        type FinalizeVotingDispatch: FinalizeVotingDispatchTrait<Self>;
+    }
 
     #[pallet::pallet]
     #[pallet::generate_store(trait Store)]
@@ -26,8 +33,8 @@ pub mod pallet {
 
     #[pallet::error]
     pub enum Error<T> {
-        // emits when from provided VotingSubject has been applied
-        VotingSubjectHasBeenApplied,
+        // emits when from provided VotingSubject has been created
+        VotingHasBeenCreated,
         // emits when provided Voting subject does not exist
         VotingSubjectDoesNotExist,
     }
@@ -44,10 +51,6 @@ pub mod pallet {
     type SomeActiveVotings<T: Config> =
         StorageMap<_, Blake2_128Concat, T::Hash, VotingSettings<T::BlockNumber>, OptionQuery>;
 
-    #[pallet::storage]
-    type SomeVotingResults<T: Config> =
-        StorageMap<_, Blake2_128Concat, T::Hash, VotingSettings<T::BlockNumber>, OptionQuery>;
-
     #[pallet::call]
     impl<T: Config> Pallet<T> {}
 
@@ -59,26 +62,21 @@ pub mod pallet {
                     <= block_number
                 {
                     <SomeActiveVotings<T>>::remove(subject.clone());
-                    <SomeVotingResults<T>>::insert(subject, voting_settings);
+                    <T::FinalizeVotingDispatch>::finalize_voting(subject, voting_settings);
                 }
             }
         }
     }
 
-    impl<T: Config> Pallet<T> {
-        pub fn get_active_votings() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>> {
+    impl<T: Config> VotingTrait<T> for Pallet<T> {
+        fn get_active_votings() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>> {
             <SomeActiveVotings<T>>::iter().collect()
         }
 
-        pub fn get_voting_results() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>> {
-            <SomeVotingResults<T>>::iter().collect()
-        }
-
-        pub fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>> {
+        fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>> {
             ensure!(
-                <SomeActiveVotings<T>>::get(subject.clone()) == None
-                    && <SomeVotingResults<T>>::get(subject.clone()) == None,
-                <Error<T>>::VotingSubjectHasBeenApplied
+                <SomeActiveVotings<T>>::get(subject.clone()) == None,
+                <Error<T>>::VotingHasBeenCreated
             );
 
             let block_number = <frame_system::Pallet<T>>::block_number();
@@ -94,7 +92,7 @@ pub mod pallet {
             Ok(())
         }
 
-        pub fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>> {
+        fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>> {
             match <SomeActiveVotings<T>>::get(subject.clone()) {
                 Some(mut settings) => {
                     settings.result += power;
@@ -105,6 +103,14 @@ pub mod pallet {
             }
         }
     }
+}
+
+pub trait VotingTrait<T: Config> {
+    fn get_active_votings() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>>;
+
+    fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>>;
+
+    fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>>;
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]

@@ -1,4 +1,5 @@
 use crate::mock::*;
+use crate::*;
 use assert::assert_err;
 use frame_support::{assert_ok, traits::OnFinalize};
 use sp_runtime::traits::Hash;
@@ -9,7 +10,6 @@ fn basic_voting_test() {
         type Hashing = <Test as frame_system::Config>::Hashing;
 
         assert_eq!(VotingPallet::get_active_votings(), Default::default());
-        assert_eq!(VotingPallet::get_voting_results(), Default::default());
 
         let subject = Hashing::hash(&[1; 32]);
         let duration = 100;
@@ -23,13 +23,10 @@ fn basic_voting_test() {
 
         assert_ok!(VotingPallet::vote(subject, 2));
 
-        assert_eq!(VotingPallet::get_voting_results(), Default::default());
-
         VotingPallet::on_finalize(duration);
 
-        assert_eq!(VotingPallet::get_voting_results().len(), 1);
         assert_eq!(VotingPallet::get_active_votings(), Default::default());
 
-        assert_err!(VotingPallet::create_voting(subject.clone(), duration));
+        assert_ok!(VotingPallet::create_voting(subject.clone(), duration));
     });
 }

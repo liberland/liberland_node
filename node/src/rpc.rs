@@ -9,9 +9,10 @@ use std::sync::Arc;
 
 use crate::identity_rpc;
 use crate::min_interior_rpc;
+use crate::referendum_rpc;
 use liberland_node_runtime::{
     opaque::Block, pallet_identity::IdentityPalletApi, pallet_min_interior::MinInteriorPalletApi,
-    AccountId, Balance, Index, Runtime,
+    pallet_referendum::ReferendumPalletApi, AccountId, Balance, Index, Runtime,
 };
 pub use sc_rpc_api::DenyUnsafe;
 use sp_api::ProvideRuntimeApi;
@@ -40,6 +41,7 @@ where
     C::Api: BlockBuilder<Block>,
     C::Api: MinInteriorPalletApi<Block, Runtime>,
     C::Api: IdentityPalletApi<Block, Runtime>,
+    C::Api: ReferendumPalletApi<Block, Runtime>,
     P: TransactionPool + 'static,
 {
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -71,6 +73,12 @@ where
 
     io.extend_with(min_interior_rpc::MinInteriorRpc::to_delegate(
         min_interior_rpc::MinInteriorRpcImpl {
+            client: client.clone(),
+        },
+    ));
+
+    io.extend_with(referendum_rpc::ReferendumRpc::to_delegate(
+        referendum_rpc::ReferendumRpcImpl {
             client: client.clone(),
         },
     ));

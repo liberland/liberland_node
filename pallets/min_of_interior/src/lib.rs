@@ -2,11 +2,11 @@
 
 use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
-use pallet_identity::IdentityTrait;
-use pallet_identity::IdentityType;
-use pallet_identity::PassportId;
-use sp_std::cmp::{Ord, PartialOrd};
-use sp_std::collections::btree_set::BTreeSet;
+use pallet_identity::{IdentityTrait, IdentityType, PassportId};
+use sp_std::{
+    cmp::{Ord, PartialOrd},
+    collections::btree_set::BTreeSet,
+};
 
 #[cfg(test)]
 mod mock;
@@ -22,8 +22,8 @@ pub mod pallet {
 
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
-    pub trait Config: frame_system::Config {
-        type IdentityTrait: pallet_identity::IdentityTrait<Self::AccountId>;
+    pub trait Config: frame_system::Config + pallet_identity::Config {
+        type IdentityTrait: pallet_identity::IdentityTrait<Self>;
     }
 
     #[pallet::pallet]

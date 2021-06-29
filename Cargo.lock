@@ -2815,6 +2815,7 @@ dependencies = [
  "pallet-identity",
  "pallet-min-interior",
  "pallet-randomness-collective-flip",
+ "pallet-referendum",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -4020,6 +4021,25 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "safe-mix",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-referendum"
+version = "1.0.0"
+dependencies = [
+ "assert",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-identity",
+ "pallet-voting",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
