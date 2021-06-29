@@ -289,9 +289,11 @@ impl pallet_voting::Config for Runtime {
 /// Configure the pallet-referendum in pallets/referendum.
 impl pallet_referendum::Config for Runtime {
     // 72 hours
-    const PETITION_DURATION: BlockNumber = (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK);
+    const PETITION_DURATION: BlockNumber =
+        (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
     // 72 hours
-    const REFERENDUM_DURATION: BlockNumber = (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK);
+    const REFERENDUM_DURATION: BlockNumber =
+        (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
     type IdentityTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
 }
