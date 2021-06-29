@@ -102,9 +102,8 @@ pub mod pallet {
 
             let petition_hash = T::Hashing::hash(&petition.data[..]);
 
-            <SomeActivePetitions<T>>::insert(petition_hash.clone(), petition);
-
             T::VotingTrait::create_voting(petition_hash, T::PETITION_DURATION)?;
+            <SomeActivePetitions<T>>::insert(petition_hash.clone(), petition);
 
             Ok(().into())
         }
@@ -164,7 +163,7 @@ pub mod pallet {
                 Some(petition) => {
                     // more than 10%
                     if voting_setting.result
-                        >= ((T::IdentityTrait::get_citizens_amount() as f64)
+                        > ((T::IdentityTrait::get_citizens_amount() as f64)
                             * T::PETITION_ACCEPTANCE_PERCENTAGE) as u64
                     {
                         <SomeActiveReferendums<T>>::insert(subject, petition);
@@ -180,7 +179,7 @@ pub mod pallet {
                 Some(referendum) => {
                     // more than 50%
                     if voting_setting.result
-                        >= ((T::IdentityTrait::get_citizens_amount() as f64)
+                        > ((T::IdentityTrait::get_citizens_amount() as f64)
                             * T::REFERENDUM_ACCEPTANCE_PERCENTAGE) as u64
                     {
                         <SomeSuccessfulReferendums<T>>::insert(subject, referendum);
