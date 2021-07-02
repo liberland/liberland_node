@@ -61,7 +61,7 @@ pub mod pallet {
                 if (voting_settings.voting_duration + voting_settings.submitted_height)
                     <= block_number
                 {
-                    <SomeActiveVotings<T>>::remove(subject.clone());
+                    <SomeActiveVotings<T>>::remove(subject);
                     <T::FinalizeVotingDispatch>::finalize_voting(subject, voting_settings);
                 }
             }
@@ -75,7 +75,7 @@ pub mod pallet {
 
         fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>> {
             ensure!(
-                <SomeActiveVotings<T>>::get(subject.clone()) == None,
+                <SomeActiveVotings<T>>::get(subject) == None,
                 <Error<T>>::VotingHasBeenCreated
             );
 
@@ -93,7 +93,7 @@ pub mod pallet {
         }
 
         fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>> {
-            match <SomeActiveVotings<T>>::get(subject.clone()) {
+            match <SomeActiveVotings<T>>::get(subject) {
                 Some(mut settings) => {
                     settings.result += power;
                     <SomeActiveVotings<T>>::insert(subject, settings);

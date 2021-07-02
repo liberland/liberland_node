@@ -1,4 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::unnecessary_mut_passed)]
 
 use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
@@ -103,7 +105,7 @@ pub mod pallet {
             let petition_hash = T::Hashing::hash(&petition.data[..]);
 
             T::VotingTrait::create_voting(petition_hash, T::PETITION_DURATION)?;
-            <SomeActivePetitions<T>>::insert(petition_hash.clone(), petition);
+            <SomeActivePetitions<T>>::insert(petition_hash, petition);
 
             Ok(().into())
         }
@@ -159,35 +161,29 @@ pub mod pallet {
 
     impl<T: Config> pallet_voting::FinalizeVotingDispatchTrait<T> for Pallet<T> {
         fn finalize_voting(subject: T::Hash, voting_setting: VotingSettings<T::BlockNumber>) {
-            match <SomeActivePetitions<T>>::get(subject) {
-                Some(petition) => {
-                    // more than 10%
-                    if voting_setting.result
-                        > ((T::IdentityTrait::get_citizens_amount() as f64)
-                            * T::PETITION_ACCEPTANCE_PERCENTAGE) as u64
-                    {
-                        <SomeActiveReferendums<T>>::insert(subject, petition);
-                        T::VotingTrait::create_voting(subject, T::REFERENDUM_DURATION).unwrap();
-                    }
-                    <SomeVotedCitizens<T>>::remove(subject);
-                    <SomeActivePetitions<T>>::remove(subject);
-                    return;
+            if let Some(petition) = <SomeActivePetitions<T>>::get(subject) {
+                // more than 10%
+                if voting_setting.result
+                    > ((T::IdentityTrait::get_citizens_amount() as f64)
+                        * T::PETITION_ACCEPTANCE_PERCENTAGE) as u64
+                {
+                    <SomeActiveReferendums<T>>::insert(subject, petition);
+                    T::VotingTrait::create_voting(subject, T::REFERENDUM_DURATION).unwrap();
                 }
-                None => {}
+                <SomeVotedCitizens<T>>::remove(subject);
+                <SomeActivePetitions<T>>::remove(subject);
+                return;
             }
-            match <SomeActiveReferendums<T>>::get(subject) {
-                Some(referendum) => {
-                    // more than 50%
-                    if voting_setting.result
-                        > ((T::IdentityTrait::get_citizens_amount() as f64)
-                            * T::REFERENDUM_ACCEPTANCE_PERCENTAGE) as u64
-                    {
-                        <SomeSuccessfulReferendums<T>>::insert(subject, referendum);
-                    }
-                    <SomeVotedCitizens<T>>::remove(subject);
-                    <SomeActiveReferendums<T>>::remove(subject);
+            if let Some(referendum) = <SomeActiveReferendums<T>>::get(subject) {
+                // more than 50%
+                if voting_setting.result
+                    > ((T::IdentityTrait::get_citizens_amount() as f64)
+                        * T::REFERENDUM_ACCEPTANCE_PERCENTAGE) as u64
+                {
+                    <SomeSuccessfulReferendums<T>>::insert(subject, referendum);
                 }
-                None => {}
+                <SomeVotedCitizens<T>>::remove(subject);
+                <SomeActiveReferendums<T>>::remove(subject);
             }
         }
     }

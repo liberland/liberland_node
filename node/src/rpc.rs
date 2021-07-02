@@ -78,9 +78,7 @@ where
     ));
 
     io.extend_with(referendum_rpc::ReferendumRpc::to_delegate(
-        referendum_rpc::ReferendumRpcImpl {
-            client: client.clone(),
-        },
+        referendum_rpc::ReferendumRpcImpl { client },
     ));
 
     // Extend this RPC with a custom API by using the following syntax.
