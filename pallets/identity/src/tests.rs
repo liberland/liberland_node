@@ -76,7 +76,7 @@ fn basic_identity_test() {
             true
         );
 
-        // remove
+        //remove
         IdentityPallet::remove_identity(id, IdentityType::Citizen);
         assert_eq!(
             IdentityPallet::get_id_identities(id),
@@ -102,5 +102,45 @@ fn basic_identity_test() {
             IdentityPallet::check_account_indetity(account, IdentityType::MinisterOfInterior),
             true
         );
+    });
+}
+
+#[test]
+fn citizen_amount_test() {
+    new_test_ext().execute_with(|| {
+        let id = [1; 32];
+        let id_2 = [2; 32];
+        assert_eq!(IdentityPallet::get_citizens_amount(), 0);
+
+        IdentityPallet::push_identity(id, IdentityType::MinisterOfInterior);
+        IdentityPallet::push_identity(id_2, IdentityType::MinisterOfInterior);
+
+        assert_eq!(IdentityPallet::get_citizens_amount(), 2);
+        assert_eq!(
+            IdentityPallet::get_id_identities(id),
+            [IdentityType::MinisterOfInterior].iter().cloned().collect()
+        );
+
+        IdentityPallet::remove_identity(id, IdentityType::MinisterOfInterior);
+        assert_eq!(IdentityPallet::get_citizens_amount(), 1);
+
+        IdentityPallet::remove_identity(id_2, IdentityType::MinisterOfInterior);
+        assert_eq!(IdentityPallet::get_citizens_amount(), 0);
+
+        IdentityPallet::push_identity(id, IdentityType::Citizen);
+        IdentityPallet::remove_identity(id, IdentityType::MinisterOfInterior);
+
+        assert_eq!(IdentityPallet::get_citizens_amount(), 1);
+        assert_eq!(
+            IdentityPallet::get_id_identities(id),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+
+        IdentityPallet::remove_identity(id, IdentityType::Citizen);
+        assert_eq!(IdentityPallet::get_citizens_amount(), 0);
+
+        // remove in emty storage
+        IdentityPallet::remove_identity(id, IdentityType::Citizen);
+        assert_eq!(IdentityPallet::get_citizens_amount(), 0);
     });
 }

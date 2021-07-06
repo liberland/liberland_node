@@ -46,6 +46,14 @@ pub mod pallet {
     type SomeAccountToId<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, PassportId, OptionQuery>;
 
+    #[pallet::storage]
+    type CitizensAmount<T: Config> = StorageValue<_, u64, ValueQuery, DefaultCitizensAmountStorage>;
+
+    #[pallet::type_value]
+    pub fn DefaultCitizensAmountStorage() -> u64 {
+        0_u64
+    }
+
     #[pallet::error]
     pub enum Error<T> {}
 
@@ -71,6 +79,7 @@ pub mod pallet {
     #[pallet::genesis_build]
     impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
         fn build(&self) {
+            <CitizensAmount<T>>::put(self.citizens.len() as u64);
             for (account, id) in self.citizens.iter() {
                 <Pallet<T>>::match_account_to_id(account.clone(), *id);
                 <Pallet<T>>::push_identity(*id, IdentityType::Citizen);
@@ -97,7 +106,12 @@ pub mod pallet {
         fn push_identity(id: PassportId, id_type: IdentityType) {
             let mut types = <SomeAccountIdentities<T>>::get(id);
             types.insert(id_type);
+            let id_2 = <SomeAccountIdentities<T>>::iter().find(|item| item.0 == id);
+
             <SomeAccountIdentities<T>>::insert(id, types);
+            if id_2.is_none() {
+                <CitizensAmount<T>>::mutate(|res| *res += 1);
+            }
         }
 
         fn remove_identity(id: PassportId, id_type: IdentityType) {
@@ -106,6 +120,12 @@ pub mod pallet {
             types.remove(&id_type);
             if types.is_empty() {
                 <SomeAccountIdentities<T>>::remove(id);
+                <CitizensAmount<T>>::mutate(|res| {
+                    //  Overflow protection
+                    if *res != 0 {
+                        *res -= 1;
+                    }
+                });
             } else {
                 <SomeAccountIdentities<T>>::insert(id, types);
             }
@@ -139,10 +159,7 @@ pub mod pallet {
         }
 
         fn get_citizens_amount() -> u64 {
-            // TODO: store the size of the SomeAccountIdentities
-            let mut res: u64 = 0;
-            <SomeAccountIdentities<T>>::iter().for_each(|_| res += 1);
-            res
+            <CitizensAmount<T>>::get()
         }
     }
 }
