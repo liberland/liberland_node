@@ -116,18 +116,17 @@ pub mod pallet {
 
         fn remove_identity(id: PassportId, id_type: IdentityType) {
             let mut types = <SomeAccountIdentities<T>>::get(id);
-            // remove identity type
-            types.remove(&id_type);
-            if types.is_empty() {
-                <SomeAccountIdentities<T>>::remove(id);
-                <CitizensAmount<T>>::mutate(|res| {
-                    //  Overflow protection
-                    if *res != 0 {
+            if !types.is_empty() {
+                // remove identity type
+                types.remove(&id_type);
+                if types.is_empty() {
+                    <SomeAccountIdentities<T>>::remove(id);
+                    <CitizensAmount<T>>::mutate(|res| {
                         *res -= 1;
-                    }
-                });
-            } else {
-                <SomeAccountIdentities<T>>::insert(id, types);
+                    });
+                } else {
+                    <SomeAccountIdentities<T>>::insert(id, types);
+                }
             }
         }
 
