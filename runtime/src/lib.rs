@@ -43,13 +43,13 @@ use pallet_transaction_payment::CurrencyAdapter;
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
+pub use pallet_documentation;
 /// Import the Liberland pallets.
 pub use pallet_identity;
 use pallet_identity::IdentityTrait;
 pub use pallet_min_interior;
 pub use pallet_referendum;
 pub use pallet_voting;
-
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -299,6 +299,9 @@ impl pallet_referendum::Config for Runtime {
     type VotingTrait = VotingPallet;
 }
 
+/// Configure the pallet-documentation in pallets/documentation.
+impl pallet_documentation::Config for Runtime {}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub enum Runtime where
@@ -319,6 +322,7 @@ construct_runtime!(
         MinInteriorPallet: pallet_min_interior::{Pallet, Call, Storage},
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
         ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
+        PalletDocumentation: pallet_documentation::{Pallet, Call, Storage},
     }
 );
 

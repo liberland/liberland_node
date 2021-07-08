@@ -50,6 +50,7 @@ pallet-identity = {default-features = false, version = '1.0.0', path = '../palle
 pallet-min-interior = {default-features = false, version = '1.0.0', path = '../pallets/min-of-interior'}
 pallet-voting = {default-features = false, version = '1.0.0', path = '../pallets/voting'}
 pallet-referendum = {default-features = false, version = '1.0.0', path = '../pallets/referendum'}
+pallet-documentation = {default-features = false, version = '1.0.0', path = '../pallets/documentation'}
 
 [features]
 default = ['std']
