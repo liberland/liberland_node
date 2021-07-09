@@ -82,9 +82,9 @@ pub mod pallet {
             <CitizensAmount<T>>::put(self.citizens.len() as u64);
             for (account, id) in self.citizens.iter() {
                 <Pallet<T>>::match_account_to_id(account.clone(), *id);
+                <Pallet<T>>::push_identity(*id, IdentityType::Citizen).unwrap();
             }
             for id in self.reviewers.iter() {
-                assert!(<Pallet<T>>::check_id_identity(*id, IdentityType::Citizen));
                 <Pallet<T>>::push_identity(*id, IdentityType::MinisterOfInterior).unwrap();
             }
         }
