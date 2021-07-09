@@ -82,11 +82,10 @@ pub mod pallet {
             <CitizensAmount<T>>::put(self.citizens.len() as u64);
             for (account, id) in self.citizens.iter() {
                 <Pallet<T>>::match_account_to_id(account.clone(), *id);
-                <Pallet<T>>::push_identity(*id, IdentityType::Citizen);
             }
             for id in self.reviewers.iter() {
                 assert!(<Pallet<T>>::check_id_identity(*id, IdentityType::Citizen));
-                <Pallet<T>>::push_identity(*id, IdentityType::MinisterOfInterior);
+                <Pallet<T>>::push_identity(*id, IdentityType::MinisterOfInterior).unwrap();
             }
         }
     }
@@ -103,27 +102,58 @@ pub mod pallet {
             <SomeAccountToId<T>>::insert(account, id);
         }
 
-        fn push_identity(id: PassportId, id_type: IdentityType) {
-            let mut types = <SomeAccountIdentities<T>>::get(id);
-            types.insert(id_type);
-            let id_2 = <SomeAccountIdentities<T>>::iter().find(|item| item.0 == id);
-
-            <SomeAccountIdentities<T>>::insert(id, types);
-            if id_2.is_none() {
-                <CitizensAmount<T>>::mutate(|res| *res += 1);
+        fn push_identity(id: PassportId, id_type: IdentityType) -> Result<(), &'static str> {
+            match id_type {
+                IdentityType::EResident => {
+                    let mut types = <SomeAccountIdentities<T>>::get(id);
+                    if !types.contains(&IdentityType::Citizen) {
+                        types.insert(id_type);
+                        <SomeAccountIdentities<T>>::insert(id, types);
+                        Ok(())
+                    } else {
+                        Err("Citizen cannot become the Eresidence at the same time")
+                    }
+                }
+                IdentityType::Citizen => {
+                    let mut types = <SomeAccountIdentities<T>>::get(id);
+                    if !types.contains(&IdentityType::EResident) {
+                        types.insert(id_type);
+                        let id_2 = <SomeAccountIdentities<T>>::iter().find(|item| item.0 == id);
+                        <SomeAccountIdentities<T>>::insert(id, types);
+                        if id_2.is_none() {
+                            <CitizensAmount<T>>::mutate(|res| *res += 1);
+                        }
+                        Ok(())
+                    } else {
+                        Err("Eresidence cannot become the Citizen at the same time")
+                    }
+                }
+                _ => {
+                    let mut types = <SomeAccountIdentities<T>>::get(id);
+                    if types.contains(&IdentityType::Citizen) {
+                        types.insert(id_type);
+                        <SomeAccountIdentities<T>>::insert(id, types);
+                        Ok(())
+                    } else {
+                        Err("We can not add any other IdentityTypes before we have add IdentityType::Citizen")
+                    }
+                }
             }
         }
 
         fn remove_identity(id: PassportId, id_type: IdentityType) {
             let mut types = <SomeAccountIdentities<T>>::get(id);
-            if !types.is_empty() {
+            if id_type == IdentityType::Citizen {
+                types.clear();
+                <SomeAccountIdentities<T>>::remove(id);
+                <CitizensAmount<T>>::mutate(|res| {
+                    *res -= 1;
+                });
+            } else {
                 // remove identity type
                 types.remove(&id_type);
                 if types.is_empty() {
                     <SomeAccountIdentities<T>>::remove(id);
-                    <CitizensAmount<T>>::mutate(|res| {
-                        *res -= 1;
-                    });
                 } else {
                     <SomeAccountIdentities<T>>::insert(id, types);
                 }
@@ -166,7 +196,7 @@ pub mod pallet {
 pub trait IdentityTrait<T: Config> {
     fn match_account_to_id(account: T::AccountId, id: PassportId);
 
-    fn push_identity(id: PassportId, id_type: IdentityType);
+    fn push_identity(id: PassportId, id_type: IdentityType) -> Result<(), &'static str>;
 
     fn remove_identity(id: PassportId, id_type: IdentityType);
 
@@ -200,8 +230,9 @@ sp_api::decl_runtime_apis! {
 pub type PassportId = [u8; 32];
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Encode, Decode, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum IdentityType {
     Citizen,
     MinisterOfInterior,
+    EResident,
 }

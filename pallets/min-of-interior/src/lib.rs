@@ -97,7 +97,7 @@ pub mod pallet {
             // update Identity info
             if approved {
                 T::IdentityTrait::match_account_to_id(info.account.clone(), info.data.id);
-                T::IdentityTrait::push_identity(info.data.id, IdentityType::Citizen);
+                T::IdentityTrait::push_identity(info.data.id, IdentityType::Citizen).unwrap();
             }
 
             // remove request from the storage

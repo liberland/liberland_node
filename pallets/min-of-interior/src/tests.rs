@@ -19,7 +19,8 @@ fn basic_identity_test() {
             ensure_signed(reviewer_account.clone()).unwrap(),
             reviewer_id,
         );
-        IdentityPallet::push_identity(reviewer_id, IdentityType::MinisterOfInterior);
+        IdentityPallet::push_identity(reviewer_id, IdentityType::Citizen).unwrap();
+        IdentityPallet::push_identity(reviewer_id, IdentityType::MinisterOfInterior).unwrap();
 
         assert_eq!(
             IdentityPallet::check_id_identity(id1, IdentityType::Citizen),
