@@ -6,7 +6,6 @@ use sp_runtime::{
     testing::Header,
     traits::{BlakeTwo256, IdentityLookup},
 };
-
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -57,6 +56,7 @@ impl system::Config for Test {
 impl pallet_identity::Config for Test {}
 
 impl pallet_kyc::Config for Test {
+    const REQUEST_BLOCK_NUMMBER: Self::BlockNumber = 10;
     type IdentityTrait = IdentityPallet;
 }
 

@@ -25,6 +25,7 @@ pub mod pallet {
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config: frame_system::Config + pallet_identity::Config {
+        const REQUEST_BLOCK_NUMMBER: Self::BlockNumber;
         type IdentityTrait: pallet_identity::IdentityTrait<Self>;
     }
 
@@ -42,14 +43,32 @@ pub mod pallet {
         AccountCannotProcessKyc,
         // emits when reviewer trying to response on the unexisting request
         RequestDoesNotExist,
+        // emit when not found EResidence
+        EresidenceNotFound,
+        // emit when try to call a function that can only be called ministry of interior
+        OnlyMinistryOfInteriorCall,
     }
 
     #[pallet::hooks]
-    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        // Block finalization
+        fn on_finalize(block_number: BlockNumberFor<T>) {
+            Self::check_request_time(block_number);
+        }
+    }
 
     #[pallet::storage]
     type SomeKycRequests<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, KycData, OptionQuery>;
+
+    #[pallet::storage]
+    type EresidentRequests<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        PassportId,
+        CitizenRequest<T::BlockNumber, T::AccountId>,
+        OptionQuery,
+    >;
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
@@ -97,12 +116,48 @@ pub mod pallet {
             // update Identity info
             if approved {
                 T::IdentityTrait::match_account_to_id(info.account.clone(), info.data.id);
-                T::IdentityTrait::push_identity(info.data.id, IdentityType::Citizen).unwrap();
+                T::IdentityTrait::push_identity(info.data.id, IdentityType::EResident).unwrap();
             }
 
             // remove request from the storage
             <SomeKycRequests<T>>::remove(info.account);
 
+            Ok(().into())
+        }
+
+        #[pallet::weight(1)]
+        pub(super) fn update_e_resident_to_citizen_reqest(
+            origin: OriginFor<T>,
+        ) -> DispatchResultWithPostInfo {
+            let sender = ensure_signed(origin)?;
+            ensure!(
+                T::IdentityTrait::check_account_indetity(sender.clone(), IdentityType::EResident),
+                <Error<T>>::EresidenceNotFound
+            );
+            let pasport_id = T::IdentityTrait::get_passport_id(sender.clone()).unwrap();
+            Self::create_citizen_request(pasport_id, sender);
+            Ok(().into())
+        }
+
+        #[pallet::weight(1)]
+        pub(super) fn aprove_to_citizen_or_not(
+            origin: OriginFor<T>,
+            info: KycRequest<T::AccountId>,
+            approved: bool,
+        ) -> DispatchResultWithPostInfo {
+            let sender = ensure_signed(origin)?;
+
+            ensure!(
+                T::IdentityTrait::check_account_indetity(sender, IdentityType::MinisterOfInterior),
+                <Error<T>>::OnlyMinistryOfInteriorCall
+            );
+            if approved {
+                T::IdentityTrait::remove_identity(info.data.id, IdentityType::EResident);
+                T::IdentityTrait::push_identity(info.data.id, IdentityType::Citizen).unwrap();
+            }
+            // remove request from the storage
+            <SomeKycRequests<T>>::remove(info.account);
+            <EresidentRequests<T>>::remove(info.data.id);
             Ok(().into())
         }
     }
@@ -112,6 +167,25 @@ pub mod pallet {
             <SomeKycRequests<T>>::iter()
                 .map(|(account, data)| KycRequest { account, data })
                 .collect()
+        }
+        pub fn check_request_time(block_nummber: T::BlockNumber) {
+            <EresidentRequests<T>>::iter().for_each(|value| {
+                if value.1.submitted_height + T::REQUEST_BLOCK_NUMMBER <= block_nummber {
+                    T::IdentityTrait::remove_identity(value.0, IdentityType::EResident);
+                    <EresidentRequests<T>>::remove(value.0);
+                    <SomeKycRequests<T>>::remove(value.1.account);
+                    T::IdentityTrait::push_identity(value.0, IdentityType::Citizen).unwrap();
+                }
+            });
+        }
+        pub fn create_citizen_request(id: PassportId, account_id: T::AccountId) {
+            let block_nummber = <frame_system::Pallet<T>>::block_number();
+            let request = CitizenRequest {
+                submitted_height: block_nummber,
+                data: KycData { id },
+                account: account_id,
+            };
+            <EresidentRequests<T>>::insert(id, request);
         }
     }
 }
@@ -133,4 +207,11 @@ pub struct KycRequest<AccountId> {
 #[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
 pub struct KycData {
     pub id: PassportId,
+}
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
+pub struct CitizenRequest<BlockNumber, AccountId> {
+    pub submitted_height: BlockNumber,
+    pub data: KycData,
+    pub account: AccountId,
 }

@@ -1,5 +1,6 @@
 use crate::mock::*;
 use crate::*;
+use frame_support::traits::Hooks;
 use frame_support::{assert_err, assert_ok};
 use frame_system::ensure_signed;
 
@@ -91,11 +92,11 @@ fn basic_identity_test() {
         ));
 
         assert_eq!(
-            IdentityPallet::check_id_identity(id1, IdentityType::Citizen),
+            IdentityPallet::check_id_identity(id1, IdentityType::EResident),
             true
         );
         assert_eq!(
-            IdentityPallet::check_id_identity(id2, IdentityType::Citizen),
+            IdentityPallet::check_id_identity(id2, IdentityType::EResident),
             false
         );
 
@@ -119,5 +120,97 @@ fn basic_identity_test() {
             account2,
             KycData { id: id2 }
         ));
+    });
+}
+#[test]
+fn e_resident_aproving_test() {
+    new_test_ext().execute_with(|| {
+        let account1 = Origin::signed(1);
+        let id1 = [1; 32];
+        let account2 = Origin::signed(2);
+        let id2 = [2; 32];
+
+        let account3 = Origin::signed(4);
+        let id3 = [4; 32];
+
+        let reviewer_account = Origin::signed(3);
+        let reviewer_id = [3; 32];
+
+        IdentityPallet::match_account_to_id(
+            ensure_signed(reviewer_account.clone()).unwrap(),
+            reviewer_id,
+        );
+        IdentityPallet::push_identity(reviewer_id, IdentityType::Citizen).unwrap();
+        IdentityPallet::push_identity(reviewer_id, IdentityType::MinisterOfInterior).unwrap();
+
+        MinInteriorPallet::request_kyc(account1.clone(), KycData { id: id1 }).unwrap();
+        let reqests = MinInteriorPallet::get_all_requests();
+        let request_1 = reqests.iter().next().unwrap().clone();
+        assert_err!(
+            MinInteriorPallet::update_e_resident_to_citizen_reqest(account1.clone()),
+            <Error<Test>>::EresidenceNotFound
+        );
+
+        MinInteriorPallet::kyc_response(reviewer_account.clone(), request_1.clone(), true).unwrap();
+        assert_eq!(
+            IdentityPallet::get_id_identities(id1),
+            [IdentityType::EResident].iter().cloned().collect()
+        );
+        MinInteriorPallet::update_e_resident_to_citizen_reqest(account1.clone()).unwrap();
+
+        assert_eq!(
+            IdentityPallet::get_id_identities(id1),
+            [IdentityType::EResident].iter().cloned().collect()
+        );
+
+        let duration = 7;
+        MinInteriorPallet::on_finalize(duration);
+        assert_eq!(
+            IdentityPallet::get_id_identities(id1),
+            [IdentityType::EResident].iter().cloned().collect()
+        );
+
+        let duration = 10;
+        MinInteriorPallet::on_finalize(duration);
+        assert_eq!(
+            IdentityPallet::get_id_identities(id1),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+
+        MinInteriorPallet::request_kyc(account2.clone(), KycData { id: id2 }).unwrap();
+        let reqests_2 = MinInteriorPallet::get_all_requests();
+        let request_2 = reqests_2.iter().next().unwrap().clone();
+        MinInteriorPallet::kyc_response(reviewer_account.clone(), request_2.clone(), true).unwrap();
+
+        assert_eq!(
+            IdentityPallet::get_id_identities(id2),
+            [IdentityType::EResident].iter().cloned().collect()
+        );
+
+        assert_err!(
+            MinInteriorPallet::aprove_to_citizen_or_not(account1, request_2.clone(), true),
+            <Error<Test>>::OnlyMinistryOfInteriorCall
+        );
+
+        MinInteriorPallet::aprove_to_citizen_or_not(reviewer_account.clone(), request_2, true)
+            .unwrap();
+
+        assert_eq!(
+            IdentityPallet::get_id_identities(id2),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+
+        MinInteriorPallet::request_kyc(account3.clone(), KycData { id: id3 }).unwrap();
+        let reqests_3 = MinInteriorPallet::get_all_requests();
+        let request_3 = reqests_3.iter().next().unwrap().clone();
+        MinInteriorPallet::kyc_response(reviewer_account.clone(), request_3.clone(), true).unwrap();
+
+        MinInteriorPallet::aprove_to_citizen_or_not(reviewer_account.clone(), request_3, false)
+            .unwrap();
+
+        assert_eq!(
+            IdentityPallet::get_id_identities(id3),
+            [IdentityType::EResident].iter().cloned().collect()
+        );
     });
 }

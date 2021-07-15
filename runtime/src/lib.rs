@@ -281,6 +281,9 @@ impl pallet_sudo::Config for Runtime {
 impl pallet_identity::Config for Runtime {}
 /// Configure the pallet-kyc in pallets/kyc.
 impl pallet_min_interior::Config for Runtime {
+    // 72 hours
+    const REQUEST_BLOCK_NUMMBER: BlockNumber =
+        (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
     type IdentityTrait = IdentityPallet;
 }
 /// Configure the pallet-voting in pallets/voting.
