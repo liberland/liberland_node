@@ -44,6 +44,11 @@ sp-session = {default-features = false, version = '3.0.0', git = 'https://github
 sp-std = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
 sp-transaction-pool = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
 sp-version = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
+sp-staking = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
+pallet-session = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
+pallet-staking-reward-curve = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
+pallet-election-provider-multi-phase = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
+sp-npos-elections = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
 
 # local dependencies
 pallet-identity = {default-features = false, version = '1.0.0', path = '../pallets/identity'}
@@ -51,6 +56,7 @@ pallet-min-interior = {default-features = false, version = '1.0.0', path = '../p
 pallet-voting = {default-features = false, version = '1.0.0', path = '../pallets/voting'}
 pallet-referendum = {default-features = false, version = '1.0.0', path = '../pallets/referendum'}
 pallet-documentation = {default-features = false, version = '1.0.0', path = '../pallets/documentation'}
+pallet-staking = {default-features = false, version = '3.0.0', path = '../pallets/staking'}
 
 [features]
 default = ['std']
@@ -64,6 +70,9 @@ runtime-benchmarks = [
 	'pallet-identity/runtime-benchmarks',
 	'pallet-min-interior/runtime-benchmarks',
 	'pallet-voting/runtime-benchmarks',
+	'pallet-referendum/runtime-benchmarks',
+	'pallet-documentation/runtime-benchmarks',
+	'pallet-staking/runtime-benchmarks',
 	'pallet-timestamp/runtime-benchmarks',
 	'sp-runtime/runtime-benchmarks',
 ]
@@ -81,8 +90,13 @@ std = [
 	'pallet-identity/std',
 	'pallet-min-interior/std',
 	'pallet-voting/std',
+	'pallet-referendum/std',
+	'pallet-documentation/std',
+	'pallet-staking/std',
 	'pallet-timestamp/std',
 	'pallet-transaction-payment-rpc-runtime-api/std',
+	'pallet-election-provider-multi-phase/std',
+	'sp-npos-elections/std',
 	'pallet-transaction-payment/std',
 	'sp-api/std',
 	'sp-block-builder/std',
