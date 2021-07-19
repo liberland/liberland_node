@@ -7,33 +7,24 @@ pub trait FinalizeVotingDispatchTrait<T: Config> {
 
 // basic implementations
 
-impl<T: Config> FinalizeVotingDispatchTrait<T> for () {
-    fn finalize_voting(_subject: T::Hash, _voting_setting: VotingSettings<T::BlockNumber>) {}
-}
-
 macro_rules! tuple_impls {
-    ($($name:ident)+) => {
-        impl<T: Config, $($name: FinalizeVotingDispatchTrait<T>),+> FinalizeVotingDispatchTrait<T> for ($($name,)+) {
-            fn finalize_voting(subject: T::Hash, voting_setting: VotingSettings<T::BlockNumber>) {
-                $($name::finalize_voting(subject.clone(), voting_setting.clone());)+
+    ($trait_name:ident $($name:ident)*) => {
+        impl<T: Config, $($name: $trait_name<T>,)*> $trait_name<T> for ($($name,)*) {
+            fn finalize_voting(_subject: T::Hash, _voting_setting: VotingSettings<T::BlockNumber>) {
+                $($name::finalize_voting(_subject.clone(), _voting_setting.clone());)*
             }
         }
     };
 }
 
-tuple_impls! { A }
-tuple_impls! { A B }
-tuple_impls! { A B C }
-tuple_impls! { A B C D }
-tuple_impls! { A B C D E }
-tuple_impls! { A B C D E F }
-tuple_impls! { A B C D E F G }
-tuple_impls! { A B C D E F G H }
-tuple_impls! { A B C D E F G H I }
-tuple_impls! { A B C D E F G H I J }
-tuple_impls! { A B C D E F G H I J K }
-tuple_impls! { A B C D E F G H I J K L }
-tuple_impls! { A B C D E F G H I J K L M }
-tuple_impls! { A B C D E F G H I J K L M N }
-tuple_impls! { A B C D E F G H I J K L M N O }
-tuple_impls! { A B C D E F G H I J K L M N O P }
+tuple_impls! { FinalizeVotingDispatchTrait }
+tuple_impls! { FinalizeVotingDispatchTrait _1 }
+tuple_impls! { FinalizeVotingDispatchTrait _1 _2 }
+tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 }
+tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 }
+tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 }
+tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 }
+tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 _7 }
+tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 _7 _8 }
+tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 _7 _8 _9 }
+tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 _7 _8 _9 _10}
