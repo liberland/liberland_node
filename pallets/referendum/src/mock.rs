@@ -66,6 +66,8 @@ impl pallet_identity::Config for Test {}
 
 impl pallet_voting::Config for Test {
     type FinalizeVotingDispatch = ReferendumPallet;
+
+    type FinalizeAltVotingDispatch = ();
 }
 
 // Build genesis storage according to the mock runtime.

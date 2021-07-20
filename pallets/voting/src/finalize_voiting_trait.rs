@@ -5,11 +5,19 @@ pub trait FinalizeVotingDispatchTrait<T: Config> {
     fn finalize_voting(subject: T::Hash, voting_setting: VotingSettings<T::BlockNumber>);
 }
 
+pub trait FinilizeAltVotingDispatchTrait<T: Config> {
+    fn finalize_voting(
+        subject: T::Hash,
+        voting_setting: AltVoutingSettings<T::BlockNumber>,
+        winner: Candidate,
+    );
+}
+
 // basic implementations
 
-macro_rules! tuple_impls {
-    ($trait_name:ident $($name:ident)*) => {
-        impl<T: Config, $($name: $trait_name<T>,)*> $trait_name<T> for ($($name,)*) {
+macro_rules! finalize_voting_dispatch_trait_impls {
+    ($($name:ident)*) => {
+        impl<T: Config, $($name: FinalizeVotingDispatchTrait<T>,)*> FinalizeVotingDispatchTrait<T> for ($($name,)*) {
             fn finalize_voting(_subject: T::Hash, _voting_setting: VotingSettings<T::BlockNumber>) {
                 $($name::finalize_voting(_subject.clone(), _voting_setting.clone());)*
             }
@@ -17,14 +25,36 @@ macro_rules! tuple_impls {
     };
 }
 
-tuple_impls! { FinalizeVotingDispatchTrait }
-tuple_impls! { FinalizeVotingDispatchTrait _1 }
-tuple_impls! { FinalizeVotingDispatchTrait _1 _2 }
-tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 }
-tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 }
-tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 }
-tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 }
-tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 _7 }
-tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 _7 _8 }
-tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 _7 _8 _9 }
-tuple_impls! { FinalizeVotingDispatchTrait _1 _2 _3 _4 _5 _6 _7 _8 _9 _10}
+finalize_voting_dispatch_trait_impls! {}
+finalize_voting_dispatch_trait_impls! {_1}
+finalize_voting_dispatch_trait_impls! {_1 _2}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7 _8}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7 _8 _9}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7 _8 _9 _10}
+
+macro_rules! finalize_voting_dispatch_trait_impls {
+    ($($name:ident)*) => {
+        impl<T: Config, $($name: FinilizeAltVotingDispatchTrait<T>,)*> FinilizeAltVotingDispatchTrait<T> for ($($name,)*) {
+            fn finalize_voting(_subject: T::Hash, _voting_setting: AltVoutingSettings<T::BlockNumber>,_winner: Candidate) {
+                $($name::finalize_voting(_subject.clone(), _voting_setting.clone(),_winner.clone());)*
+            }
+        }
+    };
+}
+
+finalize_voting_dispatch_trait_impls! {}
+finalize_voting_dispatch_trait_impls! {_1 }
+finalize_voting_dispatch_trait_impls! {_1 _2}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7 _8}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7 _8 _9}
+finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7 _8 _9 _10}
