@@ -72,6 +72,9 @@ pub trait WeightInfo {
     fn new_era(v: u32, n: u32) -> Weight;
     fn get_npos_voters(v: u32, n: u32, s: u32) -> Weight;
     fn get_npos_targets(v: u32) -> Weight;
+    // Liberland
+    fn liberland_bond() -> Weight;
+    fn liberland_bond_extra() -> Weight;
 }
 
 /// Weights for pallet_staking using the Substrate node and recommended hardware.
@@ -249,6 +252,15 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
             .saturating_add(T::DbWeight::get().reads(1 as Weight))
             .saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(v as Weight)))
     }
+
+    // Liberland
+    fn liberland_bond() -> Weight {
+        Self::bond()
+    }
+
+    fn liberland_bond_extra() -> Weight {
+        Self::bond_extra()
+    }
 }
 
 // For backwards compatibility and tests
@@ -424,5 +436,14 @@ impl WeightInfo for () {
             .saturating_add((11_317_000 as Weight).saturating_mul(v as Weight))
             .saturating_add(RocksDbWeight::get().reads(1 as Weight))
             .saturating_add(RocksDbWeight::get().reads((1 as Weight).saturating_mul(v as Weight)))
+    }
+
+    // Liberland
+    fn liberland_bond() -> Weight {
+        Self::bond()
+    }
+
+    fn liberland_bond_extra() -> Weight {
+        Self::bond_extra()
     }
 }

@@ -607,7 +607,12 @@ pub fn do_slash<T: Config>(
             *reward_payout = reward_payout.saturating_sub(missing);
         }
 
-        <Module<T>>::update_ledger(&controller, &ledger);
+        <Module<T>>::update_ledger(
+            &controller,
+            crate::POLKADOT_STAKING_ID,
+            ledger.total,
+            &ledger,
+        );
 
         // trigger the event
         <Module<T>>::deposit_event(super::RawEvent::Slash(stash.clone(), value));
