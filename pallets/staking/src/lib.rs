@@ -431,7 +431,7 @@ impl Default for ValidatorPrefs {
 /// Just a Balance/BlockNumber tuple to encode when a chunk of funds will be unlocked.
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug)]
 pub struct UnlockChunk<Balance: HasCompact> {
-    // TODO add staking id field
+    staking_id: [u8; 8],
     /// Amount of funds to be unlocked.
     #[codec(compact)]
     value: Balance,
@@ -472,9 +472,10 @@ impl<AccountId, Balance: HasCompact + Copy + Saturating + AtLeast32BitUnsigned>
 {
     /// Remove entries from `unlocking` that are sufficiently old and reduce the
     /// total by the sum of their balances.
-    /// TODO add a new argument, stash account
     fn consolidate_unlocked(self, current_era: EraIndex) -> Self {
         let mut total = self.total;
+        let mut polka_amount = self.polka_amount;
+        let mut liber_amount = self.liber_amount;
         let unlocking = self
             .unlocking
             .into_iter()
@@ -482,16 +483,11 @@ impl<AccountId, Balance: HasCompact + Copy + Saturating + AtLeast32BitUnsigned>
                 if chunk.era > current_era {
                     true
                 } else {
-                    // TODO add check which unstaking we have POLKADOT_STAKING_ID or LIBER_STAKING
-                    // if chunk.staking_id == POLKADOT_STAKING_ID {
-                    //    let new_polka =  <PolkaStakeAccounts<T>>::get(self.stash).saturating_sub(chunk.value);
-                    //    <PolkaStakeAccounts<T>>::insert(self.stash, new_polka);
-                    // }
-                    // if chunk.staking_id == LIBER_STAKING {
-                    //     let new_polka =  <LiberStakeAccounts<T>>::get(self.stash).saturating_sub(chunk.value);
-                    //     <LiberStakeAccounts<T>>::insert(self.stash, new_polka);
-                    // }
-
+                    if chunk.staking_id == POLKADOT_STAKING_ID {
+                        polka_amount = polka_amount.saturating_sub(chunk.value);
+                    } else {
+                        liber_amount = liber_amount.saturating_sub(chunk.value);
+                    };
                     total = total.saturating_sub(chunk.value);
                     false
                 }
@@ -504,8 +500,8 @@ impl<AccountId, Balance: HasCompact + Copy + Saturating + AtLeast32BitUnsigned>
             active: self.active,
             unlocking,
             claimed_rewards: self.claimed_rewards,
-            polka_amount: total, //FIXME
-            liber_amount: total,
+            polka_amount,
+            liber_amount,
         }
     }
 
@@ -1317,7 +1313,7 @@ decl_module! {
                 polka_amount: value,
                 liber_amount: Zero::zero(),
             };
-            Self::update_ledger(&controller, POLKADOT_STAKING_ID, value, &item);
+            Self::update_ledger(&controller, POLKADOT_STAKING_ID, &item);
     }
 
         /// Take the origin account as a stash and lock up `value` of its balance to the liberland stake. `controller` will
@@ -1388,7 +1384,7 @@ decl_module! {
                 polka_amount: Zero::zero(),
                 liber_amount: value,
             };
-            Self::update_ledger(&controller, LIBERLAND_STAKING_ID, value, &item);
+            Self::update_ledger(&controller, LIBERLAND_STAKING_ID, &item);
         }
 
 
@@ -1429,9 +1425,8 @@ decl_module! {
                 ensure!(ledger.active >= T::Currency::minimum_balance(), Error::<T>::InsufficientValue);
 
                 Self::deposit_event(RawEvent::Bonded(stash, extra));
-                //let lock_amount = extra + ledger.polka_account_amaunt;
                 ledger.polka_amount = extra + ledger.polka_amount;
-                Self::update_ledger(&controller, POLKADOT_STAKING_ID,ledger.polka_amount, &ledger);
+                Self::update_ledger(&controller, POLKADOT_STAKING_ID, &ledger);
             }
         }
 
@@ -1474,7 +1469,7 @@ decl_module! {
                 Self::deposit_event(RawEvent::Bonded(stash, extra));
                 //let lock_amount = extra + ledger.liber_account_amaunt;
                 ledger.liber_amount = extra + ledger.liber_amount;
-                Self::update_ledger(&controller, LIBERLAND_STAKING_ID,ledger.liber_amount,&ledger);
+                Self::update_ledger(&controller, LIBERLAND_STAKING_ID,&ledger);
             }
         }
 
@@ -1516,32 +1511,62 @@ decl_module! {
             let mut ledger = Self::ledger(&controller).ok_or(Error::<T>::NotController)?;
 
 
-                ensure!(
-                    ledger.unlocking.len() < MAX_UNLOCKING_CHUNKS,
-                    Error::<T>::NoMoreChunks,
-                );
+            ensure!(
+                ledger.unlocking.len() < MAX_UNLOCKING_CHUNKS,
+                Error::<T>::NoMoreChunks,
+            );
 
-                // TODO need to compare with the <PolkaStakeAccounts<T>>::get(controller) value instead of the ledger.active
-                // Potentioal case:
-                // If we have Polka stake = 10 and LiberStake = 10 and undond 20 tokens currently it will be allowded and ledger value will be decreased to 0
-                // so we will also decrease LiberStake amount instead of only PolkaStake
-                let mut value = value.min(ledger.polka_amount);
+            // Potentioal case:
+            // If we have Polka stake = 10 and LiberStake = 10 and undond 20 tokens currently it will be allowded and ledger value will be decreased to 0
+            // so we will also decrease LiberStake amount instead of only PolkaStake
+            let mut value = value.min(ledger.polka_amount);
 
-                if !value.is_zero() {
-                    ledger.active -= value;
+            if !value.is_zero() {
+                ledger.active -= value;
 
-                    // Avoid there being a dust balance left in the staking system.
-                    if ledger.active < T::Currency::minimum_balance() {
-                        value += ledger.active;
-                        ledger.active = Zero::zero();
-                    }
-
-                    // Note: in case there is no current era it is fine to bond one era more.
-                    let era = Self::current_era().unwrap_or(0) + T::BondingDuration::get();
-                    ledger.unlocking.push(UnlockChunk { value, era });
-                    Self::update_ledger(&controller, POLKADOT_STAKING_ID,ledger.polka_amount, &ledger);
-                    Self::deposit_event(RawEvent::Unbonded(ledger.stash, value));
+                // Avoid there being a dust balance left in the staking system.
+                if ledger.active < T::Currency::minimum_balance() {
+                    value += ledger.active;
+                    ledger.active = Zero::zero();
                 }
+
+                // Note: in case there is no current era it is fine to bond one era more.
+                let era = Self::current_era().unwrap_or(0) + T::BondingDuration::get();
+                ledger.unlocking.push(UnlockChunk {staking_id: POLKADOT_STAKING_ID ,value, era });
+                Self::update_ledger(&controller, POLKADOT_STAKING_ID, &ledger);
+                Self::deposit_event(RawEvent::Unbonded(ledger.stash, value));
+            }
+        }
+
+        #[weight = T::WeightInfo::unbond()]
+        fn liberland_unbond(origin, #[compact] value: BalanceOf<T>) {
+            let controller = ensure_signed(origin)?;
+            let mut ledger = Self::ledger(&controller).ok_or(Error::<T>::NotController)?;
+
+            ensure!(
+                ledger.unlocking.len() < MAX_UNLOCKING_CHUNKS,
+                Error::<T>::NoMoreChunks,
+            );
+            // Potentioal case:
+            // If we have Polka stake = 10 and LiberStake = 10 and undond 20 tokens currently it will be allowded and ledger value will be decreased to 0
+            // so we will also decrease LiberStake amount instead of only PolkaStake
+            let mut value = value.min(ledger.liber_amount);
+
+            if !value.is_zero() {
+                ledger.active -= value;
+
+                // Avoid there being a dust balance left in the staking system.
+                if ledger.active < T::Currency::minimum_balance() {
+                    value += ledger.active;
+                    ledger.active = Zero::zero();
+                }
+                // Note: in case there is no current era it is fine to bond one era more.
+                let era = Self::current_era().unwrap_or(0) + T::BondingDuration::get();
+                ledger.unlocking.push(UnlockChunk {staking_id: LIBERLAND_STAKING_ID ,value, era });
+                Self::update_ledger(&controller, LIBERLAND_STAKING_ID, &ledger);
+                Self::deposit_event(RawEvent::Unbonded(ledger.stash, value));
+            }
+
         }
 
         /// Remove any unlocked chunks from the `unlocking` queue from our management.
@@ -1591,33 +1616,24 @@ decl_module! {
                 Self::kill_stash(&stash, num_slashing_spans)?;
                 // remove the lock.
                 T::Currency::remove_lock(POLKADOT_STAKING_ID, &stash);
-
-                // TOOD add  T::Currency::remove_lock(LIBERLAND_STAKING_ID, &stash);
+                T::Currency::remove_lock(LIBERLAND_STAKING_ID, &stash);
 
                 // This is worst case scenario, so we use the full weight and return None
                 None
             } else {
 
-                // if let polka_stake = <PolkaStakeAccount<T>>::get(stash) {
-                //     if polka_stale == 0 {
-                //         T::Currency::remove_lock(POLKADOT_STAKING_ID, &stash);
-                //     } else
-                //     {
-                //         Self::update_ledger(&controller, POLKADOT_STAKING_ID,polka_stale, &ledger);
-                //     }
-                // }
+                if ledger.polka_amount == Zero::zero() {
+                    T::Currency::remove_lock(POLKADOT_STAKING_ID, &stash);
+                } else {
+                    Self::update_ledger(&controller, POLKADOT_STAKING_ID, &ledger);
+                }
 
-                // if let liber_stake = <LiberStakeAccounts<T>>::get(stash) {
-                //     if liber_stake == 0 {
-                //         T::Currency::remove_lock(LIBERLAND_STAKING_ID, &stash);
-                //     } else {
-                //         Self::update_ledger(&controller, LIBERLAND_STAKING_ID,liber_stake, &ledger);
-                //     }
-                // }
-
-
-                // // This was the consequence of a partial unbond. just update the ledger and move on.
-                Self::update_ledger(&controller, POLKADOT_STAKING_ID,ledger.total, &ledger);
+                if ledger.liber_amount == Zero::zero() {
+                    T::Currency::remove_lock(LIBERLAND_STAKING_ID, &stash);
+                } else {
+                    // This was the consequence of a partial unbond. just update the ledger and move on.
+                    Self::update_ledger(&controller, LIBERLAND_STAKING_ID, &ledger);
+                }
 
                 // This is only an update, so we use less overall weight.
                 Some(T::WeightInfo::withdraw_unbonded_update(num_slashing_spans))
@@ -1999,7 +2015,7 @@ decl_module! {
             // last check: the new active amount of ledger must be more than ED.
             ensure!(ledger.active >= T::Currency::minimum_balance(), Error::<T>::InsufficientValue);
 
-            Self::update_ledger(&controller, POLKADOT_STAKING_ID,ledger.total,&ledger);
+            Self::update_ledger(&controller, POLKADOT_STAKING_ID,&ledger);
             Ok(Some(
                 35 * WEIGHT_PER_MICROS
                 + 50 * WEIGHT_PER_NANOS * (ledger.unlocking.len() as Weight)
@@ -2255,20 +2271,27 @@ impl<T: Config> Module<T> {
     /// Update the ledger for a controller.
     ///
     /// This will also update the stash lock.
-    /// TODO add a new argument, lock_amount, which will be passed into the set_lock(), and such locking amount should corresponds to the staking_id
-    /// set_lock(staking_id, &ledger.stash, lock_amount, WithdrawReasons::all())
     fn update_ledger(
         controller: &T::AccountId,
         staking_id: LockIdentifier,
-        lock_amount: BalanceOf<T>,
         ledger: &StakingLedger<T::AccountId, BalanceOf<T>>,
     ) {
-        T::Currency::set_lock(
-            staking_id,
-            &ledger.stash,
-            lock_amount,
-            WithdrawReasons::all(),
-        );
+        if staking_id == POLKADOT_STAKING_ID {
+            T::Currency::set_lock(
+                staking_id,
+                &ledger.stash,
+                ledger.polka_amount,
+                WithdrawReasons::all(),
+            );
+        }
+        if staking_id == LIBERLAND_STAKING_ID {
+            T::Currency::set_lock(
+                staking_id,
+                &ledger.stash,
+                ledger.liber_amount,
+                WithdrawReasons::all(),
+            );
+        }
         <Ledger<T>>::insert(controller, ledger);
     }
 
@@ -2292,7 +2315,7 @@ impl<T: Config> Module<T> {
                     l.active += amount;
                     l.total += amount;
                     let r = T::Currency::deposit_into_existing(stash, amount).ok();
-                    Self::update_ledger(&controller, POLKADOT_STAKING_ID, l.total, &l);
+                    Self::update_ledger(&controller, POLKADOT_STAKING_ID, &l);
                     r
                 }),
             RewardDestination::Account(dest_account) => {

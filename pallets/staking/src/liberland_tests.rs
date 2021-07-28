@@ -262,7 +262,11 @@ fn liber_bond_extra_test() {
                 stash: 1,
                 total: 10,
                 active: 5,
-                unlocking: vec![UnlockChunk { value: 5, era: 3 },],
+                unlocking: vec![UnlockChunk {
+                    staking_id: POLKADOT_STAKING_ID,
+                    value: 5,
+                    era: 3
+                },],
                 claimed_rewards: vec![],
                 polka_amount: 5,
                 liber_amount: 5,
@@ -351,7 +355,11 @@ fn mirrored_liber_bond_extra_test() {
                 stash: 1,
                 total: 10,
                 active: 5,
-                unlocking: vec![UnlockChunk { value: 5, era: 3 },],
+                unlocking: vec![UnlockChunk {
+                    staking_id: POLKADOT_STAKING_ID,
+                    value: 5,
+                    era: 3
+                },],
                 claimed_rewards: vec![],
                 polka_amount: 5,
                 liber_amount: 5,
@@ -489,7 +497,11 @@ fn doubule_bond_extra_test() {
                 stash: 1,
                 total: 10,
                 active: 7,
-                unlocking: vec![UnlockChunk { value: 3, era: 3 }],
+                unlocking: vec![UnlockChunk {
+                    staking_id: POLKADOT_STAKING_ID,
+                    value: 3,
+                    era: 3
+                }],
                 claimed_rewards: vec![],
                 polka_amount: 3,
                 liber_amount: 7,
@@ -500,34 +512,27 @@ fn doubule_bond_extra_test() {
 
         assert_ok!(Staking::withdraw_unbonded(Origin::signed(1), 10));
 
-        // assert_eq!(
-        //     Balances::locks(&1),
-        //     [
-        //         BalanceLock {
-        //             id: LIBERLAND_STAKING_ID,
-        //             amount: 7,
-        //             reasons: Reasons::All
-        //         },
-        //         BalanceLock {
-        //             id: POLKADOT_STAKING_ID,
-        //             amount: 0, // FIXME this is not true we need fix withdraw_unbonded
-        //             reasons: Reasons::All
-        //         }
-        //     ]
-        // );
+        assert_eq!(
+            Balances::locks(&1),
+            [BalanceLock {
+                id: LIBERLAND_STAKING_ID,
+                amount: 7,
+                reasons: Reasons::All
+            }]
+        );
 
-        //     assert_eq!(
-        //         Staking::ledger(&1).unwrap(), //FIXME
-        //         StakingLedger {
-        //             stash: 1,
-        //             total: 7,
-        //             active: 7,
-        //             unlocking: vec![],
-        //             claimed_rewards: vec![],
-        //             polka_account_amaunt:0,
-        //             liber_account_amaunt:7,
-        //         }
-        //     );
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 7,
+                active: 7,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 0,
+                liber_amount: 7,
+            }
+        );
     });
 }
 
@@ -589,7 +594,11 @@ fn default_bond_extra_test() {
                 stash: 1,
                 total: 10,
                 active: 5,
-                unlocking: vec![UnlockChunk { value: 5, era: 3 }],
+                unlocking: vec![UnlockChunk {
+                    staking_id: POLKADOT_STAKING_ID,
+                    value: 5,
+                    era: 3
+                }],
                 claimed_rewards: vec![],
                 polka_amount: 10,
                 liber_amount: 0,
@@ -606,29 +615,29 @@ fn default_bond_extra_test() {
         );
         mock::start_active_era(3);
 
-        // assert_ok!(Staking::withdraw_unbonded(Origin::signed(1), 10));
+        assert_ok!(Staking::withdraw_unbonded(Origin::signed(1), 10));
 
-        // assert_eq!( //FIXME
-        //     Staking::ledger(&1).unwrap(),
-        //     StakingLedger {
-        //         stash: 1,
-        //         total: 5,
-        //         active: 5,
-        //         unlocking: vec![],
-        //         claimed_rewards: vec![],
-        //         polka_account_amaunt: 0,
-        //         liber_account_amaunt: 0,
-        //     }
-        // );
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 5,
+                active: 5,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 5,
+                liber_amount: 0,
+            }
+        );
 
-        // assert_eq!(
-        //     Balances::locks(&1),
-        //     [BalanceLock {
-        //         id: POLKADOT_STAKING_ID,
-        //         amount: 5,
-        //         reasons: Reasons::All
-        //     }]
-        // );
+        assert_eq!(
+            Balances::locks(&1),
+            [BalanceLock {
+                id: POLKADOT_STAKING_ID,
+                amount: 5,
+                reasons: Reasons::All
+            }]
+        );
     });
     // Particularly when she votes and the candidate is elected.
     ExtBuilder::default()
@@ -680,7 +689,7 @@ fn default_bond_extra_test() {
             // poof. Account 1 is removed from the staking system.
             assert_ok!(Staking::withdraw_unbonded(Origin::signed(2), 0));
             assert!(Staking::ledger(2).is_some());
-            assert_eq!(Balances::locks(&1).len(), 2);
+            assert_eq!(Balances::locks(&1).len(), 1);
         });
 }
 
@@ -745,5 +754,522 @@ fn liber_bond_extra_works() {
                 liber_amount: 999000,
             })
         );
+    });
+}
+
+#[test]
+fn basic_liberland_unbond_test() {
+    ExtBuilder::default().build_and_execute(|| {
+        Staking::liberland_bond(Origin::signed(1), 1, 4, RewardDestination::Controller).unwrap();
+        assert_eq!(Staking::bonded(&1).unwrap(), 1);
+
+        assert_eq!(
+            Balances::locks(&1),
+            [BalanceLock {
+                id: LIBERLAND_STAKING_ID,
+                amount: 4,
+                reasons: Reasons::All
+            }]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 4,
+                active: 4,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 0,
+                liber_amount: 4,
+            }
+        );
+        assert_ok!(Staking::bond_extra(Origin::signed(1), 3));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [
+                BalanceLock {
+                    id: LIBERLAND_STAKING_ID,
+                    amount: 4,
+                    reasons: Reasons::All
+                },
+                BalanceLock {
+                    id: POLKADOT_STAKING_ID,
+                    amount: 3,
+                    reasons: Reasons::All
+                }
+            ]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 7,
+                active: 7,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 4,
+            }
+        );
+
+        assert_ok!(Staking::liberland_bond_extra(Origin::signed(1), 3));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [
+                BalanceLock {
+                    id: LIBERLAND_STAKING_ID,
+                    amount: 7,
+                    reasons: Reasons::All
+                },
+                BalanceLock {
+                    id: POLKADOT_STAKING_ID,
+                    amount: 3,
+                    reasons: Reasons::All
+                }
+            ]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 10,
+                active: 10,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 7,
+            }
+        );
+
+        // Account `1` has staked all available amount, so bond_extra should not do anything
+        assert_ok!(Staking::liberland_bond_extra(Origin::signed(1), 3));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [
+                BalanceLock {
+                    id: LIBERLAND_STAKING_ID,
+                    amount: 7,
+                    reasons: Reasons::All
+                },
+                BalanceLock {
+                    id: POLKADOT_STAKING_ID,
+                    amount: 3,
+                    reasons: Reasons::All
+                }
+            ]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 10,
+                active: 10,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 7,
+            }
+        );
+
+        assert_ok!(Staking::liberland_unbond(Origin::signed(1), 10));
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 10,
+                active: 3,
+                unlocking: vec![UnlockChunk {
+                    staking_id: LIBERLAND_STAKING_ID,
+                    value: 7,
+                    era: 3
+                }],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 7,
+            }
+        );
+
+        mock::start_active_era(3);
+
+        assert_ok!(Staking::withdraw_unbonded(Origin::signed(1), 10));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [BalanceLock {
+                id: POLKADOT_STAKING_ID,
+                amount: 3,
+                reasons: Reasons::All
+            }]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 3,
+                active: 3,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 0,
+            }
+        );
+    });
+}
+
+#[test]
+fn unbond_all_test() {
+    ExtBuilder::default().build_and_execute(|| {
+        Staking::liberland_bond(Origin::signed(1), 1, 4, RewardDestination::Controller).unwrap();
+        assert_eq!(Staking::bonded(&1).unwrap(), 1);
+
+        assert_eq!(
+            Balances::locks(&1),
+            [BalanceLock {
+                id: LIBERLAND_STAKING_ID,
+                amount: 4,
+                reasons: Reasons::All
+            }]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 4,
+                active: 4,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 0,
+                liber_amount: 4,
+            }
+        );
+        assert_ok!(Staking::bond_extra(Origin::signed(1), 3));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [
+                BalanceLock {
+                    id: LIBERLAND_STAKING_ID,
+                    amount: 4,
+                    reasons: Reasons::All
+                },
+                BalanceLock {
+                    id: POLKADOT_STAKING_ID,
+                    amount: 3,
+                    reasons: Reasons::All
+                }
+            ]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 7,
+                active: 7,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 4,
+            }
+        );
+
+        assert_ok!(Staking::liberland_bond_extra(Origin::signed(1), 3));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [
+                BalanceLock {
+                    id: LIBERLAND_STAKING_ID,
+                    amount: 7,
+                    reasons: Reasons::All
+                },
+                BalanceLock {
+                    id: POLKADOT_STAKING_ID,
+                    amount: 3,
+                    reasons: Reasons::All
+                }
+            ]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 10,
+                active: 10,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 7,
+            }
+        );
+
+        // Account `1` has staked all available amount, so bond_extra should not do anything
+        assert_ok!(Staking::liberland_bond_extra(Origin::signed(1), 3));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [
+                BalanceLock {
+                    id: LIBERLAND_STAKING_ID,
+                    amount: 7,
+                    reasons: Reasons::All
+                },
+                BalanceLock {
+                    id: POLKADOT_STAKING_ID,
+                    amount: 3,
+                    reasons: Reasons::All
+                }
+            ]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 10,
+                active: 10,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 7,
+            }
+        );
+
+        assert_ok!(Staking::liberland_unbond(Origin::signed(1), 10));
+        assert_ok!(Staking::unbond(Origin::signed(1), 3));
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 10,
+                active: 0,
+                unlocking: vec![
+                    UnlockChunk {
+                        staking_id: LIBERLAND_STAKING_ID,
+                        value: 7,
+                        era: 3
+                    },
+                    UnlockChunk {
+                        staking_id: POLKADOT_STAKING_ID,
+                        value: 3,
+                        era: 3
+                    }
+                ],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 7,
+            }
+        );
+
+        mock::start_active_era(3);
+
+        assert_ok!(Staking::withdraw_unbonded(Origin::signed(1), 10));
+
+        assert_eq!(Balances::locks(&1), []);
+
+        assert_eq!(Staking::ledger(&1), None);
+    });
+}
+
+#[test]
+fn unbond_piecemeal_all_test() {
+    ExtBuilder::default().build_and_execute(|| {
+        Staking::liberland_bond(Origin::signed(1), 1, 4, RewardDestination::Controller).unwrap();
+        assert_eq!(Staking::bonded(&1).unwrap(), 1);
+
+        assert_eq!(
+            Balances::locks(&1),
+            [BalanceLock {
+                id: LIBERLAND_STAKING_ID,
+                amount: 4,
+                reasons: Reasons::All
+            }]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 4,
+                active: 4,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 0,
+                liber_amount: 4,
+            }
+        );
+        assert_ok!(Staking::bond_extra(Origin::signed(1), 3));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [
+                BalanceLock {
+                    id: LIBERLAND_STAKING_ID,
+                    amount: 4,
+                    reasons: Reasons::All
+                },
+                BalanceLock {
+                    id: POLKADOT_STAKING_ID,
+                    amount: 3,
+                    reasons: Reasons::All
+                }
+            ]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 7,
+                active: 7,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 4,
+            }
+        );
+
+        assert_ok!(Staking::liberland_bond_extra(Origin::signed(1), 3));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [
+                BalanceLock {
+                    id: LIBERLAND_STAKING_ID,
+                    amount: 7,
+                    reasons: Reasons::All
+                },
+                BalanceLock {
+                    id: POLKADOT_STAKING_ID,
+                    amount: 3,
+                    reasons: Reasons::All
+                }
+            ]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 10,
+                active: 10,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 7,
+            }
+        );
+
+        // Account `1` has staked all available amount, so bond_extra should not do anything
+        assert_ok!(Staking::liberland_bond_extra(Origin::signed(1), 3));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [
+                BalanceLock {
+                    id: LIBERLAND_STAKING_ID,
+                    amount: 7,
+                    reasons: Reasons::All
+                },
+                BalanceLock {
+                    id: POLKADOT_STAKING_ID,
+                    amount: 3,
+                    reasons: Reasons::All
+                }
+            ]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 10,
+                active: 10,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 7,
+            }
+        );
+
+        assert_ok!(Staking::liberland_unbond(Origin::signed(1), 10));
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 10,
+                active: 3,
+                unlocking: vec![UnlockChunk {
+                    staking_id: LIBERLAND_STAKING_ID,
+                    value: 7,
+                    era: 3
+                },],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 7,
+            }
+        );
+
+        mock::start_active_era(3);
+
+        assert_ok!(Staking::withdraw_unbonded(Origin::signed(1), 10));
+
+        assert_eq!(
+            Balances::locks(&1),
+            [BalanceLock {
+                id: POLKADOT_STAKING_ID,
+                amount: 3,
+                reasons: Reasons::All
+            }]
+        );
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 3,
+                active: 3,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 0,
+            }
+        );
+
+        assert_ok!(Staking::unbond(Origin::signed(1), 10));
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 3,
+                active: 0,
+                unlocking: vec![UnlockChunk {
+                    staking_id: POLKADOT_STAKING_ID,
+                    value: 3,
+                    era: 6
+                }],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 0,
+            }
+        );
+        mock::start_active_era(3 + 3);
+        assert_ok!(Staking::withdraw_unbonded(Origin::signed(1), 10));
+        assert_eq!(Balances::locks(&1), []);
+
+        assert_eq!(Staking::ledger(&1), None);
     });
 }

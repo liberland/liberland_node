@@ -434,6 +434,7 @@ benchmarks! {
         let (_, controller) = create_stash_controller::<T>(USER_SEED, 100, Default::default())?;
         let mut staking_ledger = Ledger::<T>::get(controller.clone()).unwrap();
         let unlock_chunk = UnlockChunk::<BalanceOf<T>> {
+            staking_id: POLKADOT_STAKING_ID,
             value: 1u32.into(),
             era: EraIndex::zero(),
         };
@@ -547,6 +548,7 @@ benchmarks! {
         let (stash, controller) = create_stash_controller::<T>(0, 100, Default::default())?;
         let mut staking_ledger = Ledger::<T>::get(controller.clone()).unwrap();
         let unlock_chunk = UnlockChunk::<BalanceOf<T>> {
+            staking_id: POLKADOT_STAKING_ID,
             value: 1u32.into(),
             era: EraIndex::zero(),
         };

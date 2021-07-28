@@ -1348,6 +1348,7 @@ fn bond_extra_and_withdraw_unbonded_works() {
                 total: 1000 + 100,
                 active: 100,
                 unlocking: vec![UnlockChunk {
+                    staking_id: POLKADOT_STAKING_ID,
                     value: 1000,
                     era: 2 + 3
                 }],
@@ -1358,62 +1359,63 @@ fn bond_extra_and_withdraw_unbonded_works() {
         );
 
         // Attempting to free the balances now will fail. 2 eras need to pass.
-        //FIXME withdraw_unbonded
-        // assert_ok!(Staking::withdraw_unbonded(Origin::signed(10), 0));
-        // assert_eq!(
-        //     Staking::ledger(&10),
-        //     Some(StakingLedger {
-        //         stash: 11,
-        //         total: 1000 + 100,
-        //         active: 100,
-        //         unlocking: vec![UnlockChunk {
-        //             value: 1000,
-        //             era: 2 + 3
-        //         }],
-        //         claimed_rewards: vec![],
-        //         polka_account_amaunt: 1100,
-        //         liber_account_amaunt: 0,
-        //     }),
-        // );
+        assert_ok!(Staking::withdraw_unbonded(Origin::signed(10), 0));
+        assert_eq!(
+            Staking::ledger(&10),
+            Some(StakingLedger {
+                stash: 11,
+                total: 1000 + 100,
+                active: 100,
+                unlocking: vec![UnlockChunk {
+                    staking_id: POLKADOT_STAKING_ID,
+                    value: 1000,
+                    era: 2 + 3
+                }],
+                claimed_rewards: vec![],
+                polka_amount: 1100,
+                liber_amount: 0,
+            }),
+        );
 
-        // // trigger next era.
-        // mock::start_active_era(3);
+        // trigger next era.
+        mock::start_active_era(3);
 
-        // // nothing yet
-        // assert_ok!(Staking::withdraw_unbonded(Origin::signed(10), 0));
-        // assert_eq!(
-        //     Staking::ledger(&10),
-        //     Some(StakingLedger {
-        //         stash: 11,
-        //         total: 1000 + 100,
-        //         active: 100,
-        //         unlocking: vec![UnlockChunk {
-        //             value: 1000,
-        //             era: 2 + 3
-        //         }],
-        //         claimed_rewards: vec![],
-        //         polka_account_amaunt: 0,
-        //         liber_account_amaunt: 0,
-        //     }),
-        // );
+        // nothing yet
+        assert_ok!(Staking::withdraw_unbonded(Origin::signed(10), 0));
+        assert_eq!(
+            Staking::ledger(&10),
+            Some(StakingLedger {
+                stash: 11,
+                total: 1000 + 100,
+                active: 100,
+                unlocking: vec![UnlockChunk {
+                    staking_id: POLKADOT_STAKING_ID,
+                    value: 1000,
+                    era: 2 + 3
+                }],
+                claimed_rewards: vec![],
+                polka_amount: 1100,
+                liber_amount: 0,
+            }),
+        );
 
-        // // trigger next era.
-        // mock::start_active_era(5);
+        // trigger next era.
+        mock::start_active_era(5);
 
-        // assert_ok!(Staking::withdraw_unbonded(Origin::signed(10), 0));
-        // // Now the value is free and the staking ledger is updated.
-        // assert_eq!(
-        //     Staking::ledger(&10),
-        //     Some(StakingLedger {
-        //         stash: 11,
-        //         total: 100,
-        //         active: 100,
-        //         unlocking: vec![],
-        //         claimed_rewards: vec![],
-        //         polka_account_amaunt: 0,
-        //         liber_account_amaunt: 0,
-        //     }),
-        // );
+        assert_ok!(Staking::withdraw_unbonded(Origin::signed(10), 0));
+        // Now the value is free and the staking ledger is updated.
+        assert_eq!(
+            Staking::ledger(&10),
+            Some(StakingLedger {
+                stash: 11,
+                total: 100,
+                active: 100,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 100,
+                liber_amount: 0,
+            }),
+        );
     })
 }
 
@@ -1504,6 +1506,7 @@ fn rebond_works() {
                     total: 1000,
                     active: 100,
                     unlocking: vec![UnlockChunk {
+                        staking_id: POLKADOT_STAKING_ID,
                         value: 900,
                         era: 2 + 3,
                     }],
@@ -1536,7 +1539,11 @@ fn rebond_works() {
                     stash: 11,
                     total: 1000,
                     active: 100,
-                    unlocking: vec![UnlockChunk { value: 900, era: 5 }],
+                    unlocking: vec![UnlockChunk {
+                        staking_id: POLKADOT_STAKING_ID,
+                        value: 900,
+                        era: 5
+                    }],
                     claimed_rewards: vec![],
                     polka_amount: 1000,
                     liber_amount: 0,
@@ -1551,7 +1558,11 @@ fn rebond_works() {
                     stash: 11,
                     total: 1000,
                     active: 600,
-                    unlocking: vec![UnlockChunk { value: 400, era: 5 }],
+                    unlocking: vec![UnlockChunk {
+                        staking_id: POLKADOT_STAKING_ID,
+                        value: 400,
+                        era: 5
+                    }],
                     claimed_rewards: vec![],
                     polka_amount: 1000,
                     liber_amount: 0,
@@ -1584,9 +1595,21 @@ fn rebond_works() {
                     total: 1000,
                     active: 100,
                     unlocking: vec![
-                        UnlockChunk { value: 300, era: 5 },
-                        UnlockChunk { value: 300, era: 5 },
-                        UnlockChunk { value: 300, era: 5 },
+                        UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
+                            value: 300,
+                            era: 5
+                        },
+                        UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
+                            value: 300,
+                            era: 5
+                        },
+                        UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
+                            value: 300,
+                            era: 5
+                        },
                     ],
                     claimed_rewards: vec![],
                     polka_amount: 1000,
@@ -1603,8 +1626,16 @@ fn rebond_works() {
                     total: 1000,
                     active: 600,
                     unlocking: vec![
-                        UnlockChunk { value: 300, era: 5 },
-                        UnlockChunk { value: 100, era: 5 },
+                        UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
+                            value: 300,
+                            era: 5
+                        },
+                        UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
+                            value: 100,
+                            era: 5
+                        },
                     ],
                     claimed_rewards: vec![],
                     polka_amount: 1000,
@@ -1658,6 +1689,7 @@ fn rebond_is_fifo() {
                     total: 1000,
                     active: 600,
                     unlocking: vec![UnlockChunk {
+                        staking_id: POLKADOT_STAKING_ID,
                         value: 400,
                         era: 2 + 3
                     },],
@@ -1679,10 +1711,12 @@ fn rebond_is_fifo() {
                     active: 300,
                     unlocking: vec![
                         UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
                             value: 400,
                             era: 2 + 3
                         },
                         UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
                             value: 300,
                             era: 3 + 3
                         },
@@ -1705,14 +1739,17 @@ fn rebond_is_fifo() {
                     active: 100,
                     unlocking: vec![
                         UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
                             value: 400,
                             era: 2 + 3
                         },
                         UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
                             value: 300,
                             era: 3 + 3
                         },
                         UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
                             value: 200,
                             era: 4 + 3
                         },
@@ -1733,10 +1770,12 @@ fn rebond_is_fifo() {
                     active: 500,
                     unlocking: vec![
                         UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
                             value: 400,
                             era: 2 + 3
                         },
                         UnlockChunk {
+                            staking_id: POLKADOT_STAKING_ID,
                             value: 100,
                             era: 3 + 3
                         },
@@ -2096,7 +2135,11 @@ fn bond_with_no_staked_value() {
                     stash: 1,
                     active: 0,
                     total: 5,
-                    unlocking: vec![UnlockChunk { value: 5, era: 3 }],
+                    unlocking: vec![UnlockChunk {
+                        staking_id: POLKADOT_STAKING_ID,
+                        value: 5,
+                        era: 3
+                    }],
                     claimed_rewards: vec![],
                     polka_amount: 5,
                     liber_amount: 0,
@@ -4356,6 +4399,7 @@ fn cannot_rebond_to_lower_than_ed() {
                     total: 1000,
                     active: 0,
                     unlocking: vec![UnlockChunk {
+                        staking_id: POLKADOT_STAKING_ID,
                         value: 1000,
                         era: 3
                     }],
@@ -4404,6 +4448,7 @@ fn cannot_bond_extra_to_lower_than_ed() {
                     total: 1000,
                     active: 0,
                     unlocking: vec![UnlockChunk {
+                        staking_id: POLKADOT_STAKING_ID,
                         value: 1000,
                         era: 3
                     }],
@@ -4444,22 +4489,21 @@ fn do_not_die_when_active_is_ed() {
             // unbond all of it except ed.
             assert_ok!(Staking::unbond(Origin::signed(20), 1000 - ed));
             start_active_era(3);
-            // FIXME
-            //     assert_ok!(Staking::withdraw_unbonded(Origin::signed(20), 100));
+            assert_ok!(Staking::withdraw_unbonded(Origin::signed(20), 100));
 
-            //     // initial stuff.
-            //     assert_eq!(
-            //         Staking::ledger(&20).unwrap(),
-            //         StakingLedger {
-            //             stash: 21,
-            //             total: ed,
-            //             active: ed,
-            //             unlocking: vec![],
-            //             claimed_rewards: vec![],
-            //             polka_account_amaunt: 10,
-            //             liber_account_amaunt: 0,
-            //         }
-            //     );
+            // initial stuff.
+            assert_eq!(
+                Staking::ledger(&20).unwrap(),
+                StakingLedger {
+                    stash: 21,
+                    total: ed,
+                    active: ed,
+                    unlocking: vec![],
+                    claimed_rewards: vec![],
+                    polka_amount: 10,
+                    liber_amount: 0,
+                }
+            );
         })
 }
 
