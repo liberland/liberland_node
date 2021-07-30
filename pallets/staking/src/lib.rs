@@ -318,6 +318,7 @@ pub use weights::WeightInfo;
 
 const POLKADOT_STAKING_ID: LockIdentifier = *b"pstaking";
 const LIBERLAND_STAKING_ID: LockIdentifier = *b"lstaking";
+const LIBER_UNSTAKE_PERIOD: u32 = 28;
 pub(crate) const LOG_TARGET: &str = "runtime::staking";
 
 // syntactic sugar for logging.
@@ -883,6 +884,8 @@ decl_storage! {
         pub Nominators get(fn nominators):
             map hasher(twox_64_concat) T::AccountId => Option<Nominations<T::AccountId>>;
 
+        pub LiberUnbondReqests get(fn liber_reqests): map hasher(twox_64_concat) T::AccountId => Option<T::BlockNumber>;
+
         /// The current era index.
         ///
         /// This is the latest planned era, depending on how the Session pallet queues the validator
@@ -1218,6 +1221,25 @@ decl_module! {
 
         fn on_initialize(_now: T::BlockNumber) -> Weight {
             // just return the weight of the on_finalize.
+            <LiberUnbondReqests<T>>::iter().for_each(|reqest|{
+                if ((_now - 1_u32.into() - reqest.1) % LIBER_UNSTAKE_PERIOD.into()).is_zero() {
+                    let mut ledger = Self::ledger(&reqest.0).unwrap();
+                    if !ledger.liber_amount.is_zero() && !ledger.active.is_zero(){
+                            ledger.active -= 1_u32.into();
+                        if ledger.active < T::Currency::minimum_balance() {
+                            ledger.active = Zero::zero();
+                        }
+                        let era = Self::current_era().unwrap_or(0) + T::BondingDuration::get(); //TODO edit era
+                        ledger.unlocking.push(UnlockChunk {staking_id: LIBERLAND_STAKING_ID ,value: 1_u32.into(), era });
+                        Self::update_ledger(&reqest.0, LIBERLAND_STAKING_ID, &ledger);
+                        Self::deposit_event(RawEvent::Unbonded(ledger.stash, 1_u32.into()));
+                    }
+                    if ledger.active.is_zero() {
+                        <LiberUnbondReqests<T>>::remove(reqest.0);
+                    }
+
+                }
+            });
             T::DbWeight::get().reads(1)
         }
 
@@ -1538,39 +1560,21 @@ decl_module! {
             }
         }
 
-        #[weight = T::WeightInfo::unbond()]
-        fn liberland_unbond(origin, #[compact] value: BalanceOf<T>) {
+        #[weight = T::WeightInfo::liberland_unbond_on()]
+        fn liberland_unbond_on(origin) {
             let controller = ensure_signed(origin)?;
-            let mut ledger = Self::ledger(&controller).ok_or(Error::<T>::NotController)?;
+            Self::ledger(&controller).ok_or(Error::<T>::NotController)?;
+            <LiberUnbondReqests<T>>::insert(controller,<frame_system::Pallet<T>>::block_number());
+        }
 
-            ensure!(
-                ledger.unlocking.len() < MAX_UNLOCKING_CHUNKS,
-                Error::<T>::NoMoreChunks,
-            );
-            // Potentioal case:
-            // If we have Polka stake = 10 and LiberStake = 10 and undond 20 tokens currently it will be allowded and ledger value will be decreased to 0
-            // so we will also decrease LiberStake amount instead of only PolkaStake
-            let mut value = value.min(ledger.liber_amount);
-
-            if !value.is_zero() {
-                ledger.active -= value;
-
-                // Avoid there being a dust balance left in the staking system.
-                if ledger.active < T::Currency::minimum_balance() {
-                    value += ledger.active;
-                    ledger.active = Zero::zero();
-                }
-                // Note: in case there is no current era it is fine to bond one era more.
-                let era = Self::current_era().unwrap_or(0) + T::BondingDuration::get();
-                ledger.unlocking.push(UnlockChunk {staking_id: LIBERLAND_STAKING_ID ,value, era });
-                Self::update_ledger(&controller, LIBERLAND_STAKING_ID, &ledger);
-                Self::deposit_event(RawEvent::Unbonded(ledger.stash, value));
-            }
-
+        #[weight = T::WeightInfo::liberland_unbond_off()]
+        fn liberland_unbond_off(origin) {
+            let controller = ensure_signed(origin)?;
+            Self::ledger(&controller).ok_or(Error::<T>::NotController)?;
+            <LiberUnbondReqests<T>>::remove(controller);
         }
 
         /// Remove any unlocked chunks from the `unlocking` queue from our management.
-        ///
         /// This essentially frees up that balance to be used by the stash account to do
         /// whatever it wants.
         ///

@@ -75,6 +75,8 @@ pub trait WeightInfo {
     // Liberland
     fn liberland_bond() -> Weight;
     fn liberland_bond_extra() -> Weight;
+    fn liberland_unbond_on() -> Weight;
+    fn liberland_unbond_off() -> Weight;
 }
 
 /// Weights for pallet_staking using the Substrate node and recommended hardware.
@@ -261,6 +263,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
     fn liberland_bond_extra() -> Weight {
         Self::bond_extra()
     }
+
+    fn liberland_unbond_on() -> Weight {
+        Self::unbond()
+    }
+
+    fn liberland_unbond_off() -> Weight {
+        Self::unbond()
+    }
 }
 
 // For backwards compatibility and tests
@@ -445,5 +455,12 @@ impl WeightInfo for () {
 
     fn liberland_bond_extra() -> Weight {
         Self::bond_extra()
+    }
+    fn liberland_unbond_on() -> Weight {
+        Self::unbond()
+    }
+
+    fn liberland_unbond_off() -> Weight {
+        Self::unbond()
     }
 }
