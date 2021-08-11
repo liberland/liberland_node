@@ -1362,3 +1362,83 @@ fn liberlnd_andbond_test_with_cansle_reqest() {
         );
     });
 }
+
+#[test]
+fn rebond_works_with_liber_staking() {
+    ExtBuilder::default().build_and_execute(|| {
+        Staking::liberland_bond(Origin::signed(1), 1, 4, RewardDestination::Controller).unwrap();
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 4,
+                active: 4,
+                unlocking: vec![],
+                claimed_rewards: vec![],
+                polka_amount: 0,
+                liber_amount: 4,
+            }
+        );
+        assert_ok!(Staking::bond_extra(Origin::signed(1), 3));
+        assert_ok!(Staking::unbond(Origin::signed(1), 3));
+        mock::start_active_era(1);
+        assert_ok!(Staking::liberland_unbond_on(Origin::signed(1)));
+        assert_eq!(Staking::liber_reqests(1).unwrap(), 15);
+
+        mock::start_active_era(3 + 1);
+
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 7,
+                active: 2,
+                unlocking: vec![
+                    UnlockChunk {
+                        staking_id: POLKADOT_STAKING_ID,
+                        era: 3,
+                        value: 3
+                    },
+                    UnlockChunk {
+                        staking_id: LIBERLAND_STAKING_ID,
+                        era: 4,
+                        value: 1
+                    },
+                    UnlockChunk {
+                        staking_id: LIBERLAND_STAKING_ID,
+                        value: 1,
+                        era: 6,
+                    }
+                ],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 4,
+            }
+        );
+
+        assert_ok!(Staking::rebond(Origin::signed(1), 5));
+        assert_eq!(
+            Staking::ledger(&1).unwrap(),
+            StakingLedger {
+                stash: 1,
+                total: 7,
+                active: 5,
+                unlocking: vec![
+                    UnlockChunk {
+                        staking_id: LIBERLAND_STAKING_ID,
+                        era: 4,
+                        value: 1
+                    },
+                    UnlockChunk {
+                        staking_id: LIBERLAND_STAKING_ID,
+                        value: 1,
+                        era: 6,
+                    }
+                ],
+                claimed_rewards: vec![],
+                polka_amount: 3,
+                liber_amount: 4,
+            }
+        );
+    });
+}

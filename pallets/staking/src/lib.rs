@@ -509,25 +509,31 @@ impl<AccountId, Balance: HasCompact + Copy + Saturating + AtLeast32BitUnsigned>
     /// Re-bond funds that were scheduled for unlocking.
     fn rebond(mut self, value: Balance) -> Self {
         let mut unlocking_balance: Balance = Zero::zero();
-
+        let mut liber_chunk_buffer = Vec::new();
         while let Some(last) = self.unlocking.last_mut() {
-            if unlocking_balance + last.value <= value {
-                unlocking_balance += last.value;
-                self.active += last.value;
-                self.unlocking.pop();
-            } else {
-                let diff = value - unlocking_balance;
+            if last.staking_id == POLKADOT_STAKING_ID {
+                if unlocking_balance + last.value <= value {
+                    unlocking_balance += last.value;
+                    self.active += last.value;
+                    self.unlocking.pop();
+                } else {
+                    let diff = value - unlocking_balance;
 
-                unlocking_balance += diff;
-                self.active += diff;
-                last.value -= diff;
+                    unlocking_balance += diff;
+                    self.active += diff;
+                    last.value -= diff;
+                }
+            } else {
+                if let Some(liber_chunk) = self.unlocking.pop() {
+                    liber_chunk_buffer.insert(0, liber_chunk);
+                }
             }
 
             if unlocking_balance >= value {
                 break;
             }
         }
-
+        self.unlocking.append(&mut liber_chunk_buffer);
         self
     }
 }
