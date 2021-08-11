@@ -309,6 +309,7 @@ impl pallet_min_interior::Config for Runtime {
 impl pallet_voting::Config for Runtime {
     type FinalizeVotingDispatch = ReferendumPallet;
     type FinalizeAltVotingDispatch = ();
+    type FinalizeAltVotingListDispatch = ();
 }
 /// Configure the pallet-referendum in pallets/referendum.
 impl pallet_referendum::Config for Runtime {

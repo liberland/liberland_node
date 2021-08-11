@@ -58,6 +58,7 @@ impl system::Config for Test {
 impl pallet_voting::Config for Test {
     type FinalizeVotingDispatch = ();
     type FinalizeAltVotingDispatch = ();
+    type FinalizeAltVotingListDispatch = ();
 }
 
 // Build genesis storage according to the mock runtime.
