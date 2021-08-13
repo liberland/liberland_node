@@ -1364,6 +1364,58 @@ fn liberlnd_andbond_test_with_cansle_reqest() {
 }
 
 #[test]
+fn make_payout_base_test() {
+    ExtBuilder::default()
+        .has_stakers(false)
+        .build_and_execute(|| {
+            Staking::liberland_bond(Origin::signed(1), 1, 5, RewardDestination::LiberStaked)
+                .unwrap();
+
+            let _t = Staking::make_payout(&1, 5).unwrap();
+            assert_eq!(
+                Staking::ledger(&1).unwrap(),
+                StakingLedger {
+                    stash: 1,
+                    total: 10,
+                    active: 10,
+                    unlocking: vec![],
+                    claimed_rewards: vec![],
+                    polka_amount: 0,
+                    liber_amount: 10,
+                }
+            );
+            Staking::bond_extra(Origin::signed(1), 5).unwrap();
+
+            assert_eq!(
+                Staking::ledger(&1).unwrap(),
+                StakingLedger {
+                    stash: 1,
+                    total: 15,
+                    active: 15,
+                    unlocking: vec![],
+                    claimed_rewards: vec![],
+                    polka_amount: 5,
+                    liber_amount: 10,
+                }
+            );
+            let _t = Staking::make_payout(&1, 5).unwrap();
+
+            assert_eq!(
+                Staking::ledger(&1).unwrap(),
+                StakingLedger {
+                    stash: 1,
+                    total: 20,
+                    active: 20,
+                    unlocking: vec![],
+                    claimed_rewards: vec![],
+                    polka_amount: 5,
+                    liber_amount: 15,
+                }
+            );
+        });
+}
+
+#[test]
 fn rebond_works_with_liber_staking() {
     ExtBuilder::default().build_and_execute(|| {
         Staking::liberland_bond(Origin::signed(1), 1, 4, RewardDestination::Controller).unwrap();

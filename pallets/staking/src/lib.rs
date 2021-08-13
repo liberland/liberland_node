@@ -390,8 +390,9 @@ pub enum StakerStatus<AccountId> {
 #[derive(PartialEq, Eq, Copy, Clone, Encode, Decode, RuntimeDebug)]
 pub enum RewardDestination<AccountId> {
     /// Pay into the stash account, increasing the amount at stake accordingly.
-    Staked,
+    PolkaStaked,
     /// Pay into the stash account, not increasing the amount at stake.
+    LiberStaked,
     Stash,
     /// Pay into the controller account.
     Controller,
@@ -403,7 +404,7 @@ pub enum RewardDestination<AccountId> {
 
 impl<AccountId> Default for RewardDestination<AccountId> {
     fn default() -> Self {
-        RewardDestination::Staked
+        RewardDestination::PolkaStaked
     }
 }
 
@@ -1031,7 +1032,7 @@ decl_storage! {
                     T::Origin::from(Some(stash.clone()).into()),
                     T::Lookup::unlookup(controller.clone()),
                     balance,
-                    RewardDestination::Staked,
+                    RewardDestination::PolkaStaked,
                 );
                 let _ = match status {
                     StakerStatus::Validator => {
@@ -2319,13 +2320,24 @@ impl<T: Config> Module<T> {
             RewardDestination::Controller => Self::bonded(stash)
                 .and_then(|controller| Some(T::Currency::deposit_creating(&controller, amount))),
             RewardDestination::Stash => T::Currency::deposit_into_existing(stash, amount).ok(),
-            RewardDestination::Staked => Self::bonded(stash)
+            RewardDestination::PolkaStaked => Self::bonded(stash)
                 .and_then(|c| Self::ledger(&c).map(|l| (c, l)))
                 .and_then(|(controller, mut l)| {
                     l.active += amount;
                     l.total += amount;
+                    l.polka_amount += amount;
                     let r = T::Currency::deposit_into_existing(stash, amount).ok();
                     Self::update_ledger(&controller, POLKADOT_STAKING_ID, &l);
+                    r
+                }),
+            RewardDestination::LiberStaked => Self::bonded(stash)
+                .and_then(|c| Self::ledger(&c).map(|l| (c, l)))
+                .and_then(|(controller, mut l)| {
+                    l.active += amount;
+                    l.total += amount;
+                    l.liber_amount += amount;
+                    let r = T::Currency::deposit_into_existing(stash, amount).ok();
+                    Self::update_ledger(&controller, LIBERLAND_STAKING_ID, &l);
                     r
                 }),
             RewardDestination::Account(dest_account) => {

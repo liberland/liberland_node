@@ -129,7 +129,7 @@ benchmarks! {
         let stash = create_funded_user::<T>("stash", USER_SEED, 100);
         let controller = create_funded_user::<T>("controller", USER_SEED, 100);
         let controller_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(controller.clone());
-        let reward_destination = RewardDestination::Staked;
+        let reward_destination = RewardDestination::PolkaStaked;
         let amount = T::Currency::minimum_balance() * 10u32.into();
         whitelist_account!(stash);
     }: _(RawOrigin::Signed(stash.clone()), controller_lookup, amount, reward_destination)
@@ -290,7 +290,7 @@ benchmarks! {
 
     set_payee {
         let (stash, controller) = create_stash_controller::<T>(USER_SEED, 100, Default::default())?;
-        assert_eq!(Payee::<T>::get(&stash), RewardDestination::Staked);
+        assert_eq!(Payee::<T>::get(&stash), RewardDestination::PolkaStaked);
         whitelist_account!(controller);
     }: _(RawOrigin::Signed(controller), RewardDestination::Controller)
     verify {
@@ -399,7 +399,7 @@ benchmarks! {
             n,
             T::MaxNominatorRewardedPerValidator::get() as u32,
             false,
-            RewardDestination::Staked,
+            RewardDestination::PolkaStaked,
         )?;
 
         let current_era = CurrentEra::get().unwrap();
@@ -648,7 +648,7 @@ mod tests {
                     n,
                     <Test as Config>::MaxNominatorRewardedPerValidator::get() as u32,
                     false,
-                    RewardDestination::Staked,
+                    RewardDestination::PolkaStaked,
                 )
                 .unwrap();
 
@@ -680,7 +680,7 @@ mod tests {
                     n,
                     <Test as Config>::MaxNominatorRewardedPerValidator::get() as u32,
                     false,
-                    RewardDestination::Staked,
+                    RewardDestination::PolkaStaked,
                 )
                 .unwrap();
 

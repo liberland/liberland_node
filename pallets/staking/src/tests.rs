@@ -1040,7 +1040,7 @@ fn reward_destination_works() {
         mock::make_all_reward_payment(0);
 
         // Check that RewardDestination is Staked (default)
-        assert_eq!(Staking::payee(&11), RewardDestination::Staked);
+        assert_eq!(Staking::payee(&11), RewardDestination::PolkaStaked);
         // Check that reward went to the stash account of validator
         assert_eq!(Balances::free_balance(11), 1000 + total_payout_0);
         // Check that amount at stake increased accordingly
@@ -1052,7 +1052,7 @@ fn reward_destination_works() {
                 active: 1000 + total_payout_0,
                 unlocking: vec![],
                 claimed_rewards: vec![0],
-                polka_amount: 1000,
+                polka_amount: 1000 + total_payout_0,
                 liber_amount: 0,
             })
         );
@@ -1085,7 +1085,7 @@ fn reward_destination_works() {
                 active: 1000 + total_payout_0,
                 unlocking: vec![],
                 claimed_rewards: vec![0, 1],
-                polka_amount: 1000,
+                polka_amount: 1000 + total_payout_0,
                 liber_amount: 0,
             })
         );
@@ -1116,7 +1116,7 @@ fn reward_destination_works() {
                 active: 1000 + total_payout_0,
                 unlocking: vec![],
                 claimed_rewards: vec![0, 1, 2],
-                polka_amount: 1000,
+                polka_amount: 1000 + total_payout_0,
                 liber_amount: 0,
             })
         );
