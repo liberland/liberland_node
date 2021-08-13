@@ -549,44 +549,70 @@ where
     ///
     /// Slashes from `active` funds first, and then `unlocking`, starting with the
     /// chunks that are closest to unlocking.
-    fn slash(&mut self, mut value: Balance, minimum_balance: Balance) -> Balance {
+
+    fn polka_slash(&mut self, mut value: Balance, minimum_balance: Balance) -> Balance {
         let pre_total = self.total;
         let total = &mut self.total;
         let active = &mut self.active;
+        let polka_amount = &mut self.polka_amount;
 
-        let slash_out_of =
-            |total_remaining: &mut Balance, target: &mut Balance, value: &mut Balance| {
-                let mut slash_from_target = (*value).min(*target);
+        let slash_out_of = |total: &mut Balance,
+                            active: &mut Balance,
+                            value: &mut Balance,
+                            polka_amount: &mut Balance| {
+            let mut slash_from_target = (*value).min(*active);
+            if !slash_from_target.is_zero() {
+                *active -= slash_from_target;
 
-                if !slash_from_target.is_zero() {
-                    *target -= slash_from_target;
-
-                    // don't leave a dust balance in the staking system.
-                    if *target <= minimum_balance {
-                        slash_from_target += *target;
-                        *value += sp_std::mem::replace(target, Zero::zero());
-                    }
-
-                    *total_remaining = total_remaining.saturating_sub(slash_from_target);
-                    *value -= slash_from_target;
+                // don't leave a dust balance in the staking system.
+                if *active <= minimum_balance {
+                    slash_from_target += *active;
+                    *value += sp_std::mem::replace(active, Zero::zero());
                 }
-            };
 
-        slash_out_of(total, active, &mut value);
+                *total = total.saturating_sub(slash_from_target);
+                *polka_amount = polka_amount.saturating_sub(slash_from_target);
+                *value -= slash_from_target;
+            }
+        };
 
-        let i = self
+        let mut chunks_value_sum: Balance = Zero::zero();
+        for i in self.unlocking.iter() {
+            if i.staking_id == POLKADOT_STAKING_ID {
+                chunks_value_sum += i.value;
+            }
+        }
+        let polka_active = polka_amount.saturating_sub(chunks_value_sum);
+        let mut slash_from_target = (value).min(polka_active);
+        if !slash_from_target.is_zero() {
+            *active = active.saturating_sub(slash_from_target);
+            if *active <= minimum_balance {
+                slash_from_target += *active;
+                value += sp_std::mem::replace(active, Zero::zero());
+            }
+            *total = total.saturating_sub(slash_from_target);
+            *polka_amount = polka_amount.saturating_sub(slash_from_target);
+            value -= slash_from_target;
+        }
+
+        let removed_indexis: Vec<_> = self
             .unlocking
             .iter_mut()
-            .map(|chunk| {
-                slash_out_of(total, &mut chunk.value, &mut value);
-                chunk.value
+            .filter_map(|chunk| {
+                if chunk.staking_id == POLKADOT_STAKING_ID {
+                    slash_out_of(total, &mut chunk.value, &mut value, polka_amount);
+                    if chunk.value.is_zero() {
+                        Some(chunk.clone())
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
             })
-            .take_while(|value| value.is_zero()) // take all fully-consumed chunks out.
-            .count();
+            .collect();
 
-        // kill all drained chunks.
-        let _ = self.unlocking.drain(..i);
-
+        self.unlocking.retain(|e| !removed_indexis.contains(e));
         pre_total.saturating_sub(*total)
     }
 }

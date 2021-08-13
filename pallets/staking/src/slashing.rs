@@ -595,9 +595,7 @@ pub fn do_slash<T: Config>(
         Some(ledger) => ledger,
         None => return, // nothing to do.
     };
-
-    let value = ledger.slash(value, T::Currency::minimum_balance());
-
+    let value = ledger.polka_slash(value, T::Currency::minimum_balance());
     if !value.is_zero() {
         let (imbalance, missing) = T::Currency::slash(stash, value);
         slashed_imbalance.subsume(imbalance);
@@ -613,7 +611,6 @@ pub fn do_slash<T: Config>(
         <Module<T>>::deposit_event(super::RawEvent::Slash(stash.clone(), value));
     }
 }
-
 /// Apply a previously-unapplied slash.
 pub(crate) fn apply_slash<T: Config>(unapplied_slash: UnappliedSlash<T::AccountId, BalanceOf<T>>) {
     let mut slashed_imbalance = NegativeImbalanceOf::<T>::zero();
