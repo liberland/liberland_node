@@ -10,11 +10,13 @@ fn basic_documentation_test() {
             "pasport".as_bytes().to_vec(),
             Document {
                 content: "some content".as_bytes().to_vec(),
+                submited: false,
             },
         );
         assert_eq!(
             Document {
-                content: "some content".as_bytes().to_vec()
+                content: "some content".as_bytes().to_vec(),
+                submited: false,
             },
             DocumentationPallet::get_document("pasport".as_bytes().to_vec()).unwrap()
         );
@@ -24,12 +26,14 @@ fn basic_documentation_test() {
             "pasport".as_bytes().to_vec(),
             Document {
                 content: "some content is updated".as_bytes().to_vec(),
+                submited: false,
             },
         );
 
         assert_eq!(
             Document {
-                content: "some content is updated".as_bytes().to_vec()
+                content: "some content is updated".as_bytes().to_vec(),
+                submited: false,
             },
             DocumentationPallet::get_document("pasport".as_bytes().to_vec()).unwrap()
         );
@@ -39,6 +43,7 @@ fn basic_documentation_test() {
             "visa".as_bytes().to_vec(),
             Document {
                 content: "some content is updated".as_bytes().to_vec(),
+                submited: false,
             },
         );
         assert_eq!(

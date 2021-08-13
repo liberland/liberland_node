@@ -57,6 +57,7 @@ pallet-voting = {default-features = false, version = '1.0.0', path = '../pallets
 pallet-referendum = {default-features = false, version = '1.0.0', path = '../pallets/referendum'}
 pallet-documentation = {default-features = false, version = '1.0.0', path = '../pallets/documentation'}
 pallet-staking = {default-features = false, version = '3.0.0', path = '../pallets/staking'}
+pallet-assembly = {default-features = false, version = '1.0.0', path = '../pallets/assembly'}
 
 [features]
 default = ['std']

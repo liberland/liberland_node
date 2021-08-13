@@ -47,6 +47,8 @@ pub mod pallet {
         EresidenceNotFound,
         // emit when try to call a function that can only be called ministry of interior
         OnlyMinistryOfInteriorCall,
+        // emit when not found Assembly
+        AssemblyNotFound,
     }
 
     #[pallet::hooks]
@@ -136,6 +138,26 @@ pub mod pallet {
             );
             let pasport_id = T::IdentityTrait::get_passport_id(sender.clone()).unwrap();
             Self::create_citizen_request(pasport_id, sender);
+            Ok(().into())
+        }
+
+        #[pallet::weight(1)]
+        pub(super) fn update_assembly_to_minister(
+            origin: OriginFor<T>,
+            account: PassportId,
+        ) -> DispatchResultWithPostInfo {
+            let sender = ensure_signed(origin)?;
+            ensure!(
+                T::IdentityTrait::check_account_indetity(sender, IdentityType::MinisterOfInterior),
+                <Error<T>>::OnlyMinistryOfInteriorCall
+            );
+
+            ensure!(
+                T::IdentityTrait::check_id_identity(account, IdentityType::Assembly),
+                <Error<T>>::AssemblyNotFound
+            );
+            T::IdentityTrait::push_identity(account, IdentityType::MinisterOfInterior).unwrap(); // This unwrap is correct
+            T::IdentityTrait::remove_identity(account, IdentityType::Assembly);
             Ok(().into())
         }
 

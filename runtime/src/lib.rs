@@ -46,6 +46,7 @@ use pallet_transaction_payment::CurrencyAdapter;
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{transaction_validity::TransactionPriority, Perbill, Permill};
 
+pub use pallet_assembly;
 /// Import the Liberland pallets.
 pub use pallet_documentation;
 pub use pallet_identity;
@@ -326,6 +327,11 @@ impl pallet_referendum::Config for Runtime {
 /// Configure the pallet-documentation in pallets/documentation.
 impl pallet_documentation::Config for Runtime {}
 
+/// Configure the pallet-documentation in pallets/assembly.
+impl pallet_assembly::Config for Runtime {
+    type DocumentsTrait = DocumentationPallet;
+}
+
 parameter_types! {
     pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(17);
         /// 2 blocks = session duration.
@@ -491,6 +497,7 @@ construct_runtime!(
         ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
         DocumentationPallet: pallet_documentation::{Pallet, Call, Storage},
         StakingPallet: pallet_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
+        AssemblyPallet: pallet_assembly::{Pallet, Call, Storage},
     }
 );
 

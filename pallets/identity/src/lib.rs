@@ -235,4 +235,5 @@ pub enum IdentityType {
     Citizen,
     MinisterOfInterior,
     EResident,
+    Assembly,
 }

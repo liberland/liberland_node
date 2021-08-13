@@ -23,7 +23,7 @@ pub mod pallet {
     pub struct Pallet<T>(_);
 
     #[pallet::storage]
-    type SomeDocuments<T: Config> =
+    pub type SomeDocuments<T: Config> =
         StorageMap<_, Blake2_128Concat, DocumentType, Document, OptionQuery>;
 
     #[pallet::error]
@@ -59,10 +59,11 @@ pub trait DocumentationTrait<T: Config> {
     fn get_document(key: DocumentType) -> Option<Document>;
 }
 
-type DocumentType = sp_std::vec::Vec<u8>;
+pub type DocumentType = sp_std::vec::Vec<u8>;
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Encode, Decode, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Document {
-    content: sp_std::vec::Vec<u8>,
+    pub content: sp_std::vec::Vec<u8>,
+    pub submited: bool,
 }
