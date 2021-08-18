@@ -310,7 +310,7 @@ impl pallet_min_interior::Config for Runtime {
 impl pallet_voting::Config for Runtime {
     type FinalizeVotingDispatch = ReferendumPallet;
     type FinalizeAltVotingDispatch = ();
-    type FinalizeAltVotingListDispatch = ();
+    type FinalizeAltVotingListDispatch = AssemblyPallet;
 }
 /// Configure the pallet-referendum in pallets/referendum.
 impl pallet_referendum::Config for Runtime {
@@ -329,7 +329,17 @@ impl pallet_documentation::Config for Runtime {}
 
 /// Configure the pallet-documentation in pallets/assembly.
 impl pallet_assembly::Config for Runtime {
-    type DocumentsTrait = DocumentationPallet;
+    const ASSEMBLY_ELECTION_PERIOD: BlockNumber = 10;
+    // 168 hours
+    const ASSEMBLY_VOTING_DURATION: BlockNumber =
+        (168 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+
+    const ASSEMBLY_VOTING_HASH: Hash = Hash::zero();
+
+    const WINNERS_AMOUNT: u32 = 3;
+
+    type IdentTrait = IdentityPallet;
+    type VotingTrait = VotingPallet;
 }
 
 parameter_types! {

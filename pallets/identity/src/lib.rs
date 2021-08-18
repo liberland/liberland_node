@@ -33,7 +33,7 @@ pub mod pallet {
     }
 
     #[pallet::storage]
-    type SomeAccountIdentities<T: Config> = StorageMap<
+    pub type SomeAccountIdentities<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
         PassportId,

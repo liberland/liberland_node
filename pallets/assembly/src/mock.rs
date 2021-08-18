@@ -19,7 +19,8 @@ frame_support::construct_runtime!(
     {
         System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
         AssemblyPallet: pallet_assembly::{Pallet,Call,Storage},
-        DocumentationPallet: pallet_documentation::{Pallet, Call, Storage},
+        IdentityPallet: pallet_identity::{Pallet,Call,Storage},
+        VotingPallet: pallet_voting::{Pallet,Call,Storage},
     }
 );
 
@@ -53,10 +54,24 @@ impl system::Config for Test {
     type SS58Prefix = SS58Prefix;
     type OnSetCode = ();
 }
-impl pallet_documentation::Config for Test {}
 
 impl pallet_assembly::Config for Test {
-    type DocumentsTrait = DocumentationPallet;
+    const ASSEMBLY_ELECTION_PERIOD: Self::BlockNumber = 10;
+    const ASSEMBLY_VOTING_HASH: Self::Hash = sp_core::H256::zero();
+    const ASSEMBLY_VOTING_DURATION: Self::BlockNumber = 100;
+    const WINNERS_AMOUNT: u32 = 3;
+    type IdentTrait = IdentityPallet;
+    type VotingTrait = VotingPallet;
+}
+
+impl pallet_identity::Config for Test {}
+
+impl pallet_voting::Config for Test {
+    type FinalizeVotingDispatch = ();
+
+    type FinalizeAltVotingDispatch = ();
+
+    type FinalizeAltVotingListDispatch = AssemblyPallet;
 }
 
 // Build genesis storage according to the mock runtime.

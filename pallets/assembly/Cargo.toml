@@ -24,7 +24,8 @@ sp-std = {default-features = false, version = '3.0.0', git = 'https://github.com
 sp-api = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
 
 # internal dependencies
-pallet-documentation = {default-features = false, version = '1.0.0', path = '../documentation'}
+pallet-identity = {default-features = false, version = '1.0.0', path = '../identity'}
+pallet-voting = {default-features = false, version = '1.0.0', path = '../voting'}
 
 [dev-dependencies]
 serde = '1.0.119'
