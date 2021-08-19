@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::mock::*;
 use crate::*;
 use frame_support::{
-    assert_err,
+    assert_err, assert_ok,
     traits::{OnFinalize, OnInitialize},
 };
 use frame_system::ensure_signed;
@@ -164,10 +164,19 @@ fn assembly_errorss_test() {
             [5_u8; 32].to_vec(),
         ];
         let voutes = VecDeque::from(v);
-        let ballot_1 = pallet_voting::AltVote::new(voutes);
+        let ballot_1 = pallet_voting::AltVote::new(voutes.clone());
         assert_err!(
-            AssemblyPallet::vote(account2, ballot_1),
+            AssemblyPallet::vote(account2.clone(), ballot_1.clone()),
             <Error<Test>>::VotingNotFound
+        );
+
+        AssemblyPallet::on_initialize(10);
+
+        assert_ok!(AssemblyPallet::vote(account2.clone(), ballot_1.clone()));
+
+        assert_err!(
+            AssemblyPallet::vote(account2.clone(), ballot_1.clone()),
+            <Error<Test>>::AlreadyVoted
         );
     });
 }

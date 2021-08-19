@@ -44,6 +44,7 @@ pub mod pallet {
         VotingNotFound,
         AccountCannotVote,
         IsNotActiveVoting,
+        AlreadyVoted,
     }
 
     #[pallet::hooks]
@@ -64,9 +65,18 @@ pub mod pallet {
     type CurrentMinistersList<T: Config> =
         StorageValue<_, BTreeSet<Candidate>, ValueQuery, DefaultCondidates>;
 
+    #[pallet::storage]
+    type SomeVotedCitizens<T: Config> =
+        StorageValue<_, BTreeSet<PassportId>, ValueQuery, DefaultVotedCitizens>;
+
     #[pallet::type_value]
     pub fn DefaultCondidates() -> BTreeSet<Candidate> {
         BTreeSet::default()
+    }
+
+    #[pallet::type_value]
+    pub fn DefaultVotedCitizens() -> BTreeSet<PassportId> {
+        Default::default()
     }
 
     #[pallet::call]
@@ -75,11 +85,19 @@ pub mod pallet {
         pub(super) fn vote(origin: OriginFor<T>, ballot: AltVote) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
             ensure!(
-                T::IdentTrait::check_account_indetity(sender, IdentityType::Citizen),
+                T::IdentTrait::check_account_indetity(sender.clone(), IdentityType::Citizen),
                 <Error<T>>::AccountCannotVote
             );
-
+            //this unwrap() is correct
+            let citizen = T::IdentTrait::get_passport_id(sender).unwrap();
+            ensure!(
+                !<SomeVotedCitizens<T>>::get().contains(&citizen),
+                <Error<T>>::AlreadyVoted
+            );
             Self::alt_vote(T::ASSEMBLY_VOTING_HASH, ballot)?;
+            <SomeVotedCitizens<T>>::mutate(|voted_citizens| {
+                voted_citizens.insert(citizen);
+            });
 
             Ok(().into())
         }
