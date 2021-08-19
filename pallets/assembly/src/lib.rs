@@ -134,7 +134,7 @@ pub mod pallet {
         }
 
         fn alt_vote(subject: T::Hash, ballot: AltVote) -> Result<(), Error<T>> {
-            match T::VotingTrait::alt_vote_list(subject, ballot) {
+            match T::VotingTrait::alt_vote_list(subject, ballot, 1) {
                 Ok(_) => Ok(()),
                 Err(_) => Err(<Error<T>>::VotingNotFound),
             }

@@ -77,7 +77,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
     ];
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    let mut resoult_ballot_list = vec![ballot];
+    let mut result_ballot_list = vec![ballot];
 
     let v = vec![
         [1_u8; 32].to_vec(),
@@ -87,7 +87,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
     let v = vec![
         [1_u8; 32].to_vec(),
@@ -97,7 +97,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
     let v = vec![
         [1_u8; 32].to_vec(),
@@ -107,7 +107,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
     let v = vec![
         [2_u8; 32].to_vec(),
@@ -117,7 +117,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
     let v = vec![
         [2_u8; 32].to_vec(),
@@ -127,7 +127,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
     let v = vec![
         [2_u8; 32].to_vec(),
@@ -137,7 +137,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
     let v = vec![
         [3_u8; 32].to_vec(),
@@ -147,7 +147,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
     let v = vec![
         [3_u8; 32].to_vec(),
@@ -157,7 +157,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
     let v = vec![
         [3_u8; 32].to_vec(),
@@ -167,15 +167,15 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
     let v = vec![[4_u8; 32].to_vec(), [3_u8; 32].to_vec()];
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    resoult_ballot_list.push(ballot);
+    result_ballot_list.push(ballot);
 
-    resoult_ballot_list
+    result_ballot_list
 }
 
 pub fn get_mock_subjects() -> BTreeSet<Candidate> {

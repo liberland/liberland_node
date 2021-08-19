@@ -75,8 +75,19 @@ pub mod pallet {
         OptionQuery,
     >;
     #[pallet::storage]
-    type BallotsStorage<T: Config> =
-        StorageMap<_, Blake2_128Concat, T::Hash, Vec<AltVote>, OptionQuery>;
+    type BallotsStorage<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        T::Hash,
+        Vec<(AltVote, u64)>,
+        ValueQuery,
+        DefaultBallotList,
+    >;
+
+    #[pallet::type_value]
+    pub fn DefaultBallotList() -> Vec<(AltVote, u64)> {
+        Default::default()
+    }
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {}
@@ -128,7 +139,7 @@ pub mod pallet {
         }
         pub fn calculate_alt_vote_winner(subject: T::Hash) -> Result<Candidate, Error<T>> {
             if let Some(settings) = <AltActiveVoitings<T>>::get(subject) {
-                let ballots_list = <BallotsStorage<T>>::get(subject).unwrap();
+                let ballots_list = <BallotsStorage<T>>::get(subject);
 
                 let mut candidate_list: BTreeMap<Candidate, u64> = settings
                     .candidates
@@ -136,12 +147,12 @@ pub mod pallet {
                     .map(|candidate| (candidate.clone(), 0))
                     .collect();
 
-                ballots_list.iter().for_each(|ballot| {
+                ballots_list.iter().for_each(|(ballot, power)| {
                     if_chain! {
                         if let Some(vout) = ballot.content.front();
                         if let Some(result) = candidate_list.get_mut(vout);
                         then {
-                            *result += 1;
+                            *result += power;
                         }
                     }
                 });
@@ -164,9 +175,11 @@ pub mod pallet {
                         removeble_key = min_voted_condidate.clone();
                         let buffer: Vec<_> = ballots_list
                             .iter()
-                            .filter(|ballot| ballot.content.front() == Some(min_voted_condidate))
+                            .filter(|(ballot, _)| {
+                                ballot.content.front() == Some(min_voted_condidate)
+                            })
                             .collect();
-                        buffer.iter().for_each(|ballot| {
+                        buffer.iter().for_each(|(ballot, power)| {
                             let mut ballot_tmp = ballot.content.clone();
                             ballot_tmp.pop_front();
                             if_chain! {
@@ -174,7 +187,7 @@ pub mod pallet {
                                 if *vout != removeble_key;
                                 if let Some(result) = candidate_list.get_mut(vout);
                                 then {
-                                    *result += 1;
+                                    *result += power;
                                 }
                             }
                         });
@@ -197,7 +210,7 @@ pub mod pallet {
             subject: T::Hash,
         ) -> Result<BTreeSet<Candidate>, Error<T>> {
             if let Some(settings) = <AltActiveListVoitings<T>>::get(subject) {
-                let ballots_list = <BallotsStorage<T>>::get(subject).unwrap();
+                let ballots_list = <BallotsStorage<T>>::get(subject);
 
                 let mut candidate_list: BTreeMap<Candidate, u64> = settings
                     .candidates
@@ -205,12 +218,12 @@ pub mod pallet {
                     .map(|candidate| (candidate.clone(), 0))
                     .collect();
 
-                ballots_list.iter().for_each(|ballot| {
+                ballots_list.iter().for_each(|(ballot, power)| {
                     if_chain! {
                         if let Some(vout) = ballot.content.front();
                         if let Some(result) = candidate_list.get_mut(vout);
                         then {
-                            *result += 1;
+                            *result += power;
                         }
                     }
                 });
@@ -223,9 +236,11 @@ pub mod pallet {
                         removeble_key = min_voted_condidate.clone();
                         let buffer: Vec<_> = ballots_list
                             .iter()
-                            .filter(|ballot| ballot.content.front() == Some(min_voted_condidate))
+                            .filter(|(ballot, _)| {
+                                ballot.content.front() == Some(min_voted_condidate)
+                            })
                             .collect();
-                        buffer.iter().for_each(|ballot| {
+                        buffer.iter().for_each(|(ballot, _)| {
                             let mut ballot_tmp = ballot.content.clone();
                             ballot_tmp.pop_front();
                             if_chain! {
@@ -294,16 +309,12 @@ pub mod pallet {
             }
         }
 
-        fn alt_vote(subject: T::Hash, ballot: AltVote) -> Result<(), Error<T>> {
+        fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
             match <AltActiveVoitings<T>>::get(subject) {
                 Some(_) => {
-                    if let Some(mut ballots_list) = <BallotsStorage<T>>::get(subject) {
-                        ballots_list.push(ballot);
-                        <BallotsStorage<T>>::insert(subject, ballots_list);
-                    } else {
-                        let new_ballot_list = sp_std::vec![ballot];
-                        <BallotsStorage<T>>::insert(subject, new_ballot_list);
-                    }
+                    let mut ballots_list = <BallotsStorage<T>>::get(subject);
+                    ballots_list.push((ballot, power));
+                    <BallotsStorage<T>>::insert(subject, ballots_list);
                     Ok(())
                 }
                 None => Err(<Error<T>>::VotingSubjectDoesNotExist),
@@ -356,16 +367,12 @@ pub mod pallet {
             Ok(())
         }
 
-        fn alt_vote_list(subject: T::Hash, ballot: AltVote) -> Result<(), Error<T>> {
+        fn alt_vote_list(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
             match <AltActiveListVoitings<T>>::get(subject) {
                 Some(_) => {
-                    if let Some(mut ballots_list) = <BallotsStorage<T>>::get(subject) {
-                        ballots_list.push(ballot);
-                        <BallotsStorage<T>>::insert(subject, ballots_list);
-                    } else {
-                        let new_ballot_list = sp_std::vec![ballot];
-                        <BallotsStorage<T>>::insert(subject, new_ballot_list);
-                    }
+                    let mut ballots_list = <BallotsStorage<T>>::get(subject);
+                    ballots_list.push((ballot, power));
+                    <BallotsStorage<T>>::insert(subject, ballots_list);
                     Ok(())
                 }
                 None => Err(<Error<T>>::VotingSubjectDoesNotExist),
@@ -398,9 +405,9 @@ pub trait VotingTrait<T: Config> {
         winners_amount: u32,
     ) -> Result<(), Error<T>>;
 
-    fn alt_vote(subject: T::Hash, ballot: AltVote) -> Result<(), Error<T>>;
+    fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>>;
 
-    fn alt_vote_list(subject: T::Hash, ballot: AltVote) -> Result<(), Error<T>>;
+    fn alt_vote_list(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>>;
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
