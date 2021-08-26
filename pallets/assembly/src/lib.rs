@@ -3,7 +3,7 @@ pub use pallet::*;
 use pallet_identity::{IdentityTrait, IdentityType, PassportId};
 use pallet_voting::{AltVote, Candidate, VotingTrait};
 use sp_std::collections::btree_set::BTreeSet;
-
+use sp_std::convert::TryInto;
 #[cfg(test)]
 mod mock;
 
@@ -12,14 +12,19 @@ mod tests;
 
 #[frame_support::pallet]
 pub mod pallet {
+
     use super::*;
     use frame_support::pallet_prelude::*;
     use frame_support::sp_runtime::traits::Zero;
     use frame_system::pallet_prelude::*;
+    use pallet_staking::StakingTrait;
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config:
-        frame_system::Config + pallet_identity::Config + pallet_voting::Config
+        frame_system::Config
+        + pallet_identity::Config
+        + pallet_voting::Config
+        + pallet_staking::Config
     {
         const ASSEMBLY_ELECTION_PERIOD: Self::BlockNumber;
 
@@ -32,6 +37,8 @@ pub mod pallet {
         type IdentTrait: IdentityTrait<Self>;
 
         type VotingTrait: pallet_voting::VotingTrait<Self>;
+
+        type StakingTrait: pallet_staking::StakingTrait<Self>;
     }
 
     #[pallet::pallet]
@@ -89,12 +96,14 @@ pub mod pallet {
                 <Error<T>>::AccountCannotVote
             );
             //this unwrap() is correct
-            let citizen = T::IdentTrait::get_passport_id(sender).unwrap();
+            let citizen = T::IdentTrait::get_passport_id(sender.clone()).unwrap();
             ensure!(
                 !<SomeVotedCitizens<T>>::get().contains(&citizen),
                 <Error<T>>::AlreadyVoted
             );
-            Self::alt_vote(T::ASSEMBLY_VOTING_HASH, ballot)?;
+            let power = T::StakingTrait::get_liber_amount(sender);
+            let b = TryInto::<u64>::try_into(power).ok().unwrap();
+            Self::alt_vote(T::ASSEMBLY_VOTING_HASH, ballot, b)?;
             <SomeVotedCitizens<T>>::mutate(|voted_citizens| {
                 voted_citizens.insert(citizen);
             });
@@ -133,8 +142,8 @@ pub mod pallet {
             Ok(())
         }
 
-        fn alt_vote(subject: T::Hash, ballot: AltVote) -> Result<(), Error<T>> {
-            match T::VotingTrait::alt_vote_list(subject, ballot, 1) {
+        fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
+            match T::VotingTrait::alt_vote_list(subject, ballot, power) {
                 Ok(_) => Ok(()),
                 Err(_) => Err(<Error<T>>::VotingNotFound),
             }
@@ -161,5 +170,5 @@ pub mod pallet {
 pub trait AssemblyTrait<T: Config> {
     fn get_minsters_of_interior() -> BTreeSet<Candidate>;
     fn add_condidate(id: PassportId) -> Result<(), Error<T>>;
-    fn alt_vote(subject: T::Hash, ballot: AltVote) -> Result<(), Error<T>>;
+    fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>>;
 }

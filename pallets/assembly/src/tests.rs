@@ -7,11 +7,12 @@ use frame_support::{
     traits::{OnFinalize, OnInitialize},
 };
 use frame_system::ensure_signed;
+use pallet_staking::RewardDestination;
 //use frame_system::ensure_signed;
 
 #[test]
 fn basic_assembly_test() {
-    new_test_ext().execute_with(|| {
+    ExtBuilder::default().build_and_execute(|| {
         //let hash_voting = H256::zero();
 
         let id1 = [1; 32];
@@ -24,12 +25,14 @@ fn basic_assembly_test() {
         let account2 = Origin::signed(2);
         let id2 = [2; 32];
 
+        Staking::liberland_bond(Origin::signed(2), 2, 1, RewardDestination::Controller).unwrap();
         IdentityPallet::match_account_to_id(ensure_signed(account2.clone()).unwrap(), id2);
         IdentityPallet::push_identity(id2.clone(), IdentityType::Citizen).unwrap();
         AssemblyPallet::add_condidate(id2).unwrap();
 
         let account3 = Origin::signed(3);
         let id3 = [3; 32];
+
         IdentityPallet::match_account_to_id(ensure_signed(account3.clone()).unwrap(), id3);
         IdentityPallet::push_identity(id3.clone(), IdentityType::Citizen).unwrap();
         AssemblyPallet::add_condidate(id3).unwrap();
@@ -49,31 +52,36 @@ fn basic_assembly_test() {
         // Add vouters
         let account6 = Origin::signed(6);
         let id6 = [6; 32];
+
+        Staking::liberland_bond(Origin::signed(6), 6, 1, RewardDestination::Controller).unwrap();
         IdentityPallet::match_account_to_id(ensure_signed(account6.clone()).unwrap(), id6);
         IdentityPallet::push_identity(id6.clone(), IdentityType::Citizen).unwrap();
 
         let account7 = Origin::signed(7);
         let id7 = [7; 32];
+        Staking::liberland_bond(Origin::signed(7), 7, 1, RewardDestination::Controller).unwrap();
         IdentityPallet::match_account_to_id(ensure_signed(account7.clone()).unwrap(), id7);
         IdentityPallet::push_identity(id7.clone(), IdentityType::Citizen).unwrap();
 
         let account8 = Origin::signed(8);
         let id8 = [8; 32];
+        Staking::liberland_bond(Origin::signed(8), 8, 1, RewardDestination::Controller).unwrap();
         IdentityPallet::match_account_to_id(ensure_signed(account8.clone()).unwrap(), id8);
         IdentityPallet::push_identity(id8.clone(), IdentityType::Citizen).unwrap();
 
         let account9 = Origin::signed(9);
         let id9 = [9; 32];
+        Staking::liberland_bond(Origin::signed(9), 9, 1, RewardDestination::Controller).unwrap();
         IdentityPallet::match_account_to_id(ensure_signed(account9.clone()).unwrap(), id9);
         IdentityPallet::push_identity(id9.clone(), IdentityType::Citizen).unwrap();
 
-        let account10 = Origin::signed(10);
-        let id10 = [10; 32];
+        let account10 = Origin::signed(17);
+        let id10 = [17; 32];
+        Staking::liberland_bond(Origin::signed(17), 17, 1, RewardDestination::Controller).unwrap();
         IdentityPallet::match_account_to_id(ensure_signed(account10.clone()).unwrap(), id10);
         IdentityPallet::push_identity(id10.clone(), IdentityType::Citizen).unwrap();
 
         AssemblyPallet::on_initialize(10);
-
         let v = vec![
             [2_u8; 32].to_vec(),
             [1_u8; 32].to_vec(),
@@ -130,7 +138,7 @@ fn basic_assembly_test() {
         AssemblyPallet::vote(account9, ballot_4).unwrap();
         AssemblyPallet::vote(account10, ballot_5).unwrap();
 
-        VotingPallet::on_finalize(100);
+        VotingPallet::on_finalize(101);
 
         let mut winners = BTreeSet::new();
         winners.insert([1_u8; 32].to_vec());
@@ -142,7 +150,7 @@ fn basic_assembly_test() {
 
 #[test]
 fn assembly_errorss_test() {
-    new_test_ext().execute_with(|| {
+    ExtBuilder::default().build_and_execute(|| {
         let id1 = [1; 32];
         let account1 = Origin::signed(1);
 

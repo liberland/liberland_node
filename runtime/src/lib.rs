@@ -340,6 +340,7 @@ impl pallet_assembly::Config for Runtime {
 
     type IdentTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
+    type StakingTrait = StakingPallet;
 }
 
 parameter_types! {

@@ -313,7 +313,7 @@ use sp_staking::{
     offence::{Offence, OffenceDetails, OffenceError, OnOffenceHandler, ReportOffence},
     SessionIndex,
 };
-use sp_std::{collections::btree_map::BTreeMap, convert::From, prelude::*, result};
+use sp_std::{collections::btree_map::BTreeMap, convert::From, prelude::*, result, vec};
 pub use weights::WeightInfo;
 
 const POLKADOT_STAKING_ID: LockIdentifier = *b"pstaking";
@@ -347,7 +347,7 @@ pub type BalanceOf<T> =
 type PositiveImbalanceOf<T> = <<T as Config>::Currency as Currency<
     <T as frame_system::Config>::AccountId,
 >>::PositiveImbalance;
-type NegativeImbalanceOf<T> = <<T as Config>::Currency as Currency<
+pub type NegativeImbalanceOf<T> = <<T as Config>::Currency as Currency<
     <T as frame_system::Config>::AccountId,
 >>::NegativeImbalance;
 
@@ -436,7 +436,7 @@ pub struct UnlockChunk<Balance: HasCompact> {
     staking_id: [u8; 8],
     /// Amount of funds to be unlocked.
     #[codec(compact)]
-    value: Balance,
+    pub value: Balance,
     /// Era number at which point it'll be unlocked.
     #[codec(compact)]
     era: EraIndex,
@@ -1009,7 +1009,7 @@ decl_storage! {
         ///
         /// Must contains information for eras for the range:
         /// `[active_era - bounding_duration; active_era]`
-        BondedEras: Vec<(EraIndex, SessionIndex)>;
+        pub BondedEras: Vec<(EraIndex, SessionIndex)>;
 
         /// All slashing events on validators, mapped by era to the highest slash proportion
         /// and slash value of the era.
@@ -3223,4 +3223,18 @@ where
 /// Check that list is sorted and has no duplicates.
 fn is_sorted_and_unique(list: &[u32]) -> bool {
     list.windows(2).all(|w| w[0] < w[1])
+}
+
+pub trait StakingTrait<T: Config> {
+    fn get_liber_amount(acount_id: T::AccountId) -> BalanceOf<T>;
+}
+
+impl<T: Config> StakingTrait<T> for Pallet<T> {
+    fn get_liber_amount(acount_id: T::AccountId) -> BalanceOf<T> {
+        if let Some(ledger) = Self::ledger(acount_id) {
+            let liber_amount = ledger.liber_amount;
+            return liber_amount;
+        }
+        Zero::zero()
+    }
 }
