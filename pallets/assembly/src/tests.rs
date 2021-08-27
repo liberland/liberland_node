@@ -20,7 +20,7 @@ fn basic_assembly_test() {
 
         IdentityPallet::match_account_to_id(ensure_signed(account1.clone()).unwrap(), id1);
         IdentityPallet::push_identity(id1.clone(), IdentityType::Citizen).unwrap();
-        AssemblyPallet::add_condidate(id1).unwrap();
+        AssemblyPallet::add_condidate_internal(id1).unwrap();
 
         let account2 = Origin::signed(2);
         let id2 = [2; 32];
@@ -28,26 +28,26 @@ fn basic_assembly_test() {
         Staking::liberland_bond(Origin::signed(2), 2, 1, RewardDestination::Controller).unwrap();
         IdentityPallet::match_account_to_id(ensure_signed(account2.clone()).unwrap(), id2);
         IdentityPallet::push_identity(id2.clone(), IdentityType::Citizen).unwrap();
-        AssemblyPallet::add_condidate(id2).unwrap();
+        AssemblyPallet::add_condidate_internal(id2).unwrap();
 
         let account3 = Origin::signed(3);
         let id3 = [3; 32];
 
         IdentityPallet::match_account_to_id(ensure_signed(account3.clone()).unwrap(), id3);
         IdentityPallet::push_identity(id3.clone(), IdentityType::Citizen).unwrap();
-        AssemblyPallet::add_condidate(id3).unwrap();
+        AssemblyPallet::add_condidate_internal(id3).unwrap();
 
         let account4 = Origin::signed(4);
         let id4 = [4; 32];
         IdentityPallet::match_account_to_id(ensure_signed(account4.clone()).unwrap(), id4);
         IdentityPallet::push_identity(id4.clone(), IdentityType::Citizen).unwrap();
-        AssemblyPallet::add_condidate(id4).unwrap();
+        AssemblyPallet::add_condidate_internal(id4).unwrap();
 
         let account5 = Origin::signed(5);
         let id5 = [5; 32];
         IdentityPallet::match_account_to_id(ensure_signed(account5.clone()).unwrap(), id5);
         IdentityPallet::push_identity(id5.clone(), IdentityType::Citizen).unwrap();
-        AssemblyPallet::add_condidate(id5).unwrap();
+        AssemblyPallet::add_condidate_internal(id5).unwrap();
 
         // Add vouters
         let account6 = Origin::signed(6);
@@ -156,7 +156,7 @@ fn assembly_errorss_test() {
 
         IdentityPallet::match_account_to_id(ensure_signed(account1.clone()).unwrap(), id1);
         IdentityPallet::push_identity(id1.clone(), IdentityType::Citizen).unwrap();
-        AssemblyPallet::add_condidate(id1).unwrap();
+        AssemblyPallet::add_condidate_internal(id1).unwrap();
 
         let account2 = Origin::signed(2);
         let id2 = [2; 32];

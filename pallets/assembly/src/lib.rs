@@ -52,6 +52,7 @@ pub mod pallet {
         AccountCannotVote,
         IsNotActiveVoting,
         AlreadyVoted,
+        UserNotFound,
     }
 
     #[pallet::hooks]
@@ -110,6 +111,14 @@ pub mod pallet {
 
             Ok(().into())
         }
+
+        #[pallet::weight(1)]
+        pub(super) fn add_condidate(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+            let sender = ensure_signed(origin)?;
+            let citizen = T::IdentTrait::get_passport_id(sender).ok_or(<Error<T>>::UserNotFound)?;
+            Self::add_condidate_internal(citizen)?;
+            Ok(().into())
+        }
     }
 
     impl<T: Config> Pallet<T> {
@@ -131,7 +140,7 @@ pub mod pallet {
             <CurrentMinistersList<T>>::get()
         }
 
-        fn add_condidate(id: PassportId) -> Result<(), Error<T>> {
+        fn add_condidate_internal(id: PassportId) -> Result<(), Error<T>> {
             let condidate = T::IdentTrait::get_id_identities(id);
             if !condidate.contains(&IdentityType::Citizen) {
                 return Err(<Error<T>>::ItIsNotCitizen);
@@ -169,6 +178,6 @@ pub mod pallet {
 
 pub trait AssemblyTrait<T: Config> {
     fn get_minsters_of_interior() -> BTreeSet<Candidate>;
-    fn add_condidate(id: PassportId) -> Result<(), Error<T>>;
+    fn add_condidate_internal(id: PassportId) -> Result<(), Error<T>>;
     fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>>;
 }
