@@ -169,14 +169,14 @@ pub mod pallet {
 
                 while candidate_list.len() >= 2 {
                     let mut removeble_key = Vec::new();
-                    if let Some((min_voted_condidate, _)) =
+                    if let Some((min_voted_candidate, _)) =
                         candidate_list.iter_mut().min_by_key(|(_, result)| **result)
                     {
-                        removeble_key = min_voted_condidate.clone();
+                        removeble_key = min_voted_candidate.clone();
                         let buffer: Vec<_> = ballots_list
                             .iter()
                             .filter(|(ballot, _)| {
-                                ballot.content.front() == Some(min_voted_condidate)
+                                ballot.content.front() == Some(min_voted_candidate)
                             })
                             .collect();
                         buffer.iter().for_each(|(ballot, power)| {
@@ -230,14 +230,14 @@ pub mod pallet {
 
                 while candidate_list.len() > settings.winners_amount as usize {
                     let mut removeble_key = Vec::new();
-                    if let Some((min_voted_condidate, _)) =
+                    if let Some((min_voted_candidate, _)) =
                         candidate_list.iter_mut().min_by_key(|(_, result)| **result)
                     {
-                        removeble_key = min_voted_condidate.clone();
+                        removeble_key = min_voted_candidate.clone();
                         let buffer: Vec<_> = ballots_list
                             .iter()
                             .filter(|(ballot, _)| {
-                                ballot.content.front() == Some(min_voted_condidate)
+                                ballot.content.front() == Some(min_voted_candidate)
                             })
                             .collect();
                         buffer.iter().for_each(|(ballot, _)| {
@@ -395,7 +395,7 @@ pub trait VotingTrait<T: Config> {
     fn create_alt_voting(
         subject: T::Hash,
         duration: T::BlockNumber,
-        condidates: BTreeSet<Candidate>,
+        candidates: BTreeSet<Candidate>,
     ) -> Result<(), Error<T>>;
 
     fn create_alt_voting_list(

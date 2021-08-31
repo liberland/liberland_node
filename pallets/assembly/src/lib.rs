@@ -47,12 +47,11 @@ pub mod pallet {
 
     #[pallet::error]
     pub enum Error<T> {
-        ItIsNotCitizen,
+        AccountCannotBeAddedAsCandiate,
         VotingNotFound,
         AccountCannotVote,
         IsNotActiveVoting,
         AlreadyVoted,
-        UserNotFound,
     }
 
     #[pallet::hooks]
@@ -66,19 +65,21 @@ pub mod pallet {
     }
 
     #[pallet::storage]
-    type CondidatesList<T: Config> =
-        StorageValue<_, BTreeSet<Candidate>, ValueQuery, DefaultCondidates>;
+    #[pallet::getter(fn candidates_list)]
+    type CandidatesList<T: Config> =
+        StorageValue<_, BTreeSet<Candidate>, ValueQuery, DefaultCandidates>;
 
     #[pallet::storage]
+    #[pallet::getter(fn ministers_list)]
     type CurrentMinistersList<T: Config> =
-        StorageValue<_, BTreeSet<Candidate>, ValueQuery, DefaultCondidates>;
+        StorageValue<_, BTreeSet<Candidate>, ValueQuery, DefaultCandidates>;
 
     #[pallet::storage]
     type SomeVotedCitizens<T: Config> =
         StorageValue<_, BTreeSet<PassportId>, ValueQuery, DefaultVotedCitizens>;
 
     #[pallet::type_value]
-    pub fn DefaultCondidates() -> BTreeSet<Candidate> {
+    pub fn DefaultCandidates() -> BTreeSet<Candidate> {
         BTreeSet::default()
     }
 
@@ -113,45 +114,40 @@ pub mod pallet {
         }
 
         #[pallet::weight(1)]
-        pub(super) fn add_condidate(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+        pub(super) fn add_candidate(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
-            let citizen = T::IdentTrait::get_passport_id(sender).ok_or(<Error<T>>::UserNotFound)?;
-            Self::add_condidate_internal(citizen)?;
+            let citizen = T::IdentTrait::get_passport_id(sender)
+                .ok_or(<Error<T>>::AccountCannotBeAddedAsCandiate)?;
+            Self::add_candidate_internal(citizen)?;
             Ok(().into())
         }
     }
 
     impl<T: Config> Pallet<T> {
         fn initialize() {
-            let condidates = <CondidatesList<T>>::get();
+            let candidates = <CandidatesList<T>>::get();
             T::VotingTrait::create_alt_voting_list(
                 T::ASSEMBLY_VOTING_HASH,
                 T::ASSEMBLY_VOTING_DURATION,
-                condidates,
+                candidates,
                 T::WINNERS_AMOUNT,
             )
             .unwrap();
-            <CondidatesList<T>>::kill();
-        }
-    }
-
-    impl<T: Config> AssemblyTrait<T> for Pallet<T> {
-        fn get_minsters_of_interior() -> BTreeSet<Candidate> {
-            <CurrentMinistersList<T>>::get()
+            <CandidatesList<T>>::kill();
         }
 
-        fn add_condidate_internal(id: PassportId) -> Result<(), Error<T>> {
-            let condidate = T::IdentTrait::get_id_identities(id);
-            if !condidate.contains(&IdentityType::Citizen) {
-                return Err(<Error<T>>::ItIsNotCitizen);
+        pub fn add_candidate_internal(id: PassportId) -> Result<(), Error<T>> {
+            let candidate = T::IdentTrait::get_id_identities(id);
+            if !candidate.contains(&IdentityType::Citizen) {
+                return Err(<Error<T>>::AccountCannotBeAddedAsCandiate);
             }
-            <CondidatesList<T>>::mutate(|elem| {
+            <CandidatesList<T>>::mutate(|elem| {
                 elem.insert(id.to_vec());
             });
             Ok(())
         }
 
-        fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
+        pub fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
             match T::VotingTrait::alt_vote_list(subject, ballot, power) {
                 Ok(_) => Ok(()),
                 Err(_) => Err(<Error<T>>::VotingNotFound),
@@ -174,10 +170,4 @@ pub mod pallet {
             });
         }
     }
-}
-
-pub trait AssemblyTrait<T: Config> {
-    fn get_minsters_of_interior() -> BTreeSet<Candidate>;
-    fn add_condidate_internal(id: PassportId) -> Result<(), Error<T>>;
-    fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>>;
 }
