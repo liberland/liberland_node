@@ -8,7 +8,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 use pallet_staking::RewardDestination;
-//use frame_system::ensure_signed;
+use sp_runtime::traits::Hash;
 
 #[test]
 fn basic_assembly_test() {
@@ -137,7 +137,18 @@ fn basic_assembly_test() {
         AssemblyPallet::vote(account8, ballot_3).unwrap();
         AssemblyPallet::vote(account9, ballot_4).unwrap();
         AssemblyPallet::vote(account10, ballot_5).unwrap();
-
+        assert_eq!(
+            IdentityPallet::get_id_identities([1_u8; 32]),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+        assert_eq!(
+            IdentityPallet::get_id_identities([2_u8; 32]),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+        assert_eq!(
+            IdentityPallet::get_id_identities([3_u8; 32]),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
         VotingPallet::on_finalize(101);
 
         let mut winners = BTreeSet::new();
@@ -145,6 +156,27 @@ fn basic_assembly_test() {
         winners.insert([2_u8; 32].to_vec());
         winners.insert([3_u8; 32].to_vec());
         assert_eq!(AssemblyPallet::ministers_list(), winners);
+        assert_eq!(
+            IdentityPallet::get_id_identities([1_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+        assert_eq!(
+            IdentityPallet::get_id_identities([2_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+        assert_eq!(
+            IdentityPallet::get_id_identities([3_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
     });
 }
 
@@ -185,6 +217,78 @@ fn assembly_errorss_test() {
         assert_err!(
             AssemblyPallet::vote(account2.clone(), ballot_1.clone()),
             <Error<Test>>::AlreadyVoted
+        );
+    });
+}
+
+#[test]
+fn basic_low_voting_test() {
+    ExtBuilder::default().build_and_execute(|| {
+        // create 5 assembly
+        let account1 = Origin::signed(1);
+        let id1 = [1; 32];
+        Staking::liberland_bond(Origin::signed(1), 1, 1, RewardDestination::Controller).unwrap();
+        IdentityPallet::match_account_to_id(ensure_signed(account1.clone()).unwrap(), id1);
+        IdentityPallet::push_identity(id1.clone(), IdentityType::Citizen).unwrap();
+        IdentityPallet::push_identity(id1.clone(), IdentityType::Assembly).unwrap();
+
+        let account2 = Origin::signed(2);
+        let id2 = [2; 32];
+        Staking::liberland_bond(Origin::signed(2), 2, 1, RewardDestination::Controller).unwrap();
+        IdentityPallet::match_account_to_id(ensure_signed(account2.clone()).unwrap(), id2);
+        IdentityPallet::push_identity(id2.clone(), IdentityType::Citizen).unwrap();
+        IdentityPallet::push_identity(id2.clone(), IdentityType::Assembly).unwrap();
+
+        let account3 = Origin::signed(3);
+        let id3 = [3; 32];
+        Staking::liberland_bond(Origin::signed(3), 3, 1, RewardDestination::Controller).unwrap();
+        IdentityPallet::match_account_to_id(ensure_signed(account3.clone()).unwrap(), id3);
+        IdentityPallet::push_identity(id3.clone(), IdentityType::Citizen).unwrap();
+        IdentityPallet::push_identity(id3.clone(), IdentityType::Assembly).unwrap();
+
+        let account4 = Origin::signed(4);
+        let id4 = [4; 32];
+        Staking::liberland_bond(Origin::signed(4), 4, 1, RewardDestination::Controller).unwrap();
+        IdentityPallet::match_account_to_id(ensure_signed(account4.clone()).unwrap(), id4);
+        IdentityPallet::push_identity(id4.clone(), IdentityType::Citizen).unwrap();
+        IdentityPallet::push_identity(id4.clone(), IdentityType::Assembly).unwrap();
+
+        let account5 = Origin::signed(5);
+        let id5 = [5; 32];
+        Staking::liberland_bond(Origin::signed(5), 5, 1, RewardDestination::Controller).unwrap();
+        IdentityPallet::match_account_to_id(ensure_signed(account5.clone()).unwrap(), id5);
+        IdentityPallet::push_identity(id5.clone(), IdentityType::Citizen).unwrap();
+        IdentityPallet::push_identity(id5.clone(), IdentityType::Assembly).unwrap();
+
+        type Hashing = <Test as frame_system::Config>::Hashing;
+        let law_hash_1 = Hashing::hash(&[1; 32]);
+        let law_hash_2 = Hashing::hash(&[2; 32]);
+        AssemblyPallet::propose_law(account1.clone(), law_hash_1).unwrap();
+        AssemblyPallet::propose_law(account2.clone(), law_hash_2).unwrap();
+
+        AssemblyPallet::vote_to_law(account1.clone(), law_hash_1).unwrap();
+        AssemblyPallet::vote_to_law(account2.clone(), law_hash_1).unwrap();
+        AssemblyPallet::vote_to_law(account3.clone(), law_hash_1).unwrap();
+        AssemblyPallet::vote_to_law(account4.clone(), law_hash_2).unwrap();
+        AssemblyPallet::vote_to_law(account5.clone(), law_hash_2).unwrap();
+
+        assert_eq!(
+            AssemblyPallet::laws(law_hash_1).unwrap(),
+            LawState::InProgress,
+        );
+        assert_eq!(
+            AssemblyPallet::laws(law_hash_2).unwrap(),
+            LawState::InProgress,
+        );
+        VotingPallet::on_finalize(11);
+
+        assert_eq!(
+            AssemblyPallet::laws(law_hash_1).unwrap(),
+            LawState::Approved,
+        );
+        assert_eq!(
+            AssemblyPallet::laws(law_hash_2).unwrap(),
+            LawState::Approved,
         );
     });
 }

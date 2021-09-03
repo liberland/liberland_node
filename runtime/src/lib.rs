@@ -308,7 +308,7 @@ impl pallet_min_interior::Config for Runtime {
 }
 /// Configure the pallet-voting in pallets/voting.
 impl pallet_voting::Config for Runtime {
-    type FinalizeVotingDispatch = ReferendumPallet;
+    type FinalizeVotingDispatch = (ReferendumPallet, AssemblyPallet);
     type FinalizeAltVotingDispatch = ();
     type FinalizeAltVotingListDispatch = AssemblyPallet;
 }
@@ -329,15 +329,18 @@ impl pallet_documentation::Config for Runtime {}
 
 /// Configure the pallet-documentation in pallets/assembly.
 impl pallet_assembly::Config for Runtime {
-    // 1 month
+    // 1 week
     const ASSEMBLY_ELECTION_PERIOD: BlockNumber =
         (24 * 7 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
     // 24 hours
     const ASSEMBLY_VOTING_DURATION: BlockNumber =
         (24 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
 
-    const ASSEMBLY_VOTING_HASH: Hash = Hash::zero();
+    // 1 week
+    const LAW_VOTING_DURATION: Self::BlockNumber =
+        (24 * 7 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
 
+    const ASSEMBLY_VOTING_HASH: Hash = Hash::zero();
     const WINNERS_AMOUNT: u32 = 3;
 
     type IdentTrait = IdentityPallet;

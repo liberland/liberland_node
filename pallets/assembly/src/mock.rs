@@ -286,6 +286,7 @@ impl pallet_assembly::Config for Test {
     const ASSEMBLY_ELECTION_PERIOD: Self::BlockNumber = 10;
     const ASSEMBLY_VOTING_HASH: Self::Hash = sp_core::H256::zero();
     const ASSEMBLY_VOTING_DURATION: Self::BlockNumber = 100;
+    const LAW_VOTING_DURATION: Self::BlockNumber = 10;
     const WINNERS_AMOUNT: u32 = 3;
     type IdentTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
@@ -295,7 +296,7 @@ impl pallet_assembly::Config for Test {
 impl pallet_identity::Config for Test {}
 
 impl pallet_voting::Config for Test {
-    type FinalizeVotingDispatch = ();
+    type FinalizeVotingDispatch = AssemblyPallet;
 
     type FinalizeAltVotingDispatch = ();
 

@@ -32,7 +32,8 @@ jobs:
           rustup default nightly
           rustup update nightly
           rustup update stable
-          rustup target add wasm32-unknown-unknown --toolchain nightly
+          rustup override add nightly-2021-08-31
+          rustup target add wasm32-unknown-unknown --toolchain nightly-2021-08-31
           cargo update -p parity-db
       - name: Check clippy
         run: CARGO_HTTP_MULTIPLEXING=false cargo clippy -- -D warnings -A clippy::large-enum-variant -A clippy::too-many-arguments -A clippy::unnecessary-mut-passed -A clippy::type-complexity

@@ -1,4 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
 use pallet_identity::{IdentityTrait, IdentityType, PassportId};
 use pallet_voting::{AltVote, Candidate, VotingTrait};
@@ -31,6 +32,8 @@ pub mod pallet {
         const ASSEMBLY_VOTING_DURATION: Self::BlockNumber;
 
         const ASSEMBLY_VOTING_HASH: Self::Hash;
+
+        const LAW_VOTING_DURATION: Self::BlockNumber;
 
         const WINNERS_AMOUNT: u32;
 
@@ -78,6 +81,14 @@ pub mod pallet {
     type SomeVotedCitizens<T: Config> =
         StorageValue<_, BTreeSet<PassportId>, ValueQuery, DefaultVotedCitizens>;
 
+    #[pallet::storage]
+    type VotedAssemblies<T: Config> =
+        StorageValue<_, BTreeSet<PassportId>, ValueQuery, DefaultVotedCitizens>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn laws)]
+    type Laws<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, LawState, OptionQuery>;
+
     #[pallet::type_value]
     pub fn DefaultCandidates() -> BTreeSet<Candidate> {
         BTreeSet::default()
@@ -119,6 +130,48 @@ pub mod pallet {
             let citizen = T::IdentTrait::get_passport_id(sender)
                 .ok_or(<Error<T>>::AccountCannotBeAddedAsCandiate)?;
             Self::add_candidate_internal(citizen)?;
+            Ok(().into())
+        }
+
+        #[pallet::weight(1)]
+        pub(super) fn propose_law(
+            origin: OriginFor<T>,
+            law_hash: T::Hash,
+        ) -> DispatchResultWithPostInfo {
+            let sender = ensure_signed(origin)?;
+            ensure!(
+                T::IdentTrait::check_account_indetity(sender, IdentityType::Assembly),
+                <Error<T>>::AccountCannotBeAddedAsCandiate
+            );
+            T::VotingTrait::create_voting(law_hash, T::LAW_VOTING_DURATION)?;
+            <Laws<T>>::insert(law_hash, LawState::InProgress);
+            Ok(().into())
+        }
+
+        #[pallet::weight(1)]
+        pub(super) fn vote_to_law(
+            origin: OriginFor<T>,
+            law_hash: T::Hash,
+        ) -> DispatchResultWithPostInfo {
+            let sender = ensure_signed(origin)?;
+            ensure!(
+                T::IdentTrait::check_account_indetity(sender.clone(), IdentityType::Assembly),
+                <Error<T>>::AccountCannotBeAddedAsCandiate
+            );
+
+            //this unwrap() is correct
+            let assembly = T::IdentTrait::get_passport_id(sender.clone()).unwrap();
+            ensure!(
+                !<VotedAssemblies<T>>::get().contains(&assembly),
+                <Error<T>>::AlreadyVoted
+            );
+            let power = TryInto::<u64>::try_into(T::StakingTrait::get_liber_amount(sender))
+                .ok()
+                .unwrap();
+            T::VotingTrait::vote(law_hash, power)?;
+            <VotedAssemblies<T>>::mutate(|voted_assemblyes| {
+                voted_assemblyes.insert(assembly);
+            });
             Ok(().into())
         }
     }
@@ -165,9 +218,34 @@ pub mod pallet {
         ) {
             <CurrentMinistersList<T>>::mutate(|e| {
                 for i in winners.iter() {
+                    let mut id_slice: [u8; 32] = [Default::default(); 32];
+                    id_slice[..i.len()].copy_from_slice(i);
+                    T::IdentTrait::push_identity(id_slice, IdentityType::Assembly).unwrap();
                     e.insert(i.clone());
                 }
             });
         }
     }
+
+    impl<T: Config> pallet_voting::FinalizeVotingDispatchTrait<T> for Pallet<T> {
+        fn finalize_voting(
+            subject: T::Hash,
+            voting_setting: pallet_voting::VotingSettings<T::BlockNumber>,
+        ) {
+            let ministers = <CurrentMinistersList<T>>::get();
+            if ((voting_setting.result as f64 / ministers.len() as f64) * 100.0) > 50.0 {
+                <Laws<T>>::insert(subject, LawState::Approved);
+            } else {
+                <Laws<T>>::insert(subject, LawState::Declined);
+            }
+        }
+    }
+}
+
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Encode, Decode, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum LawState {
+    Approved,
+    InProgress,
+    Declined,
 }
