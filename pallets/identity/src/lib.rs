@@ -33,7 +33,8 @@ pub mod pallet {
     }
 
     #[pallet::storage]
-    pub type SomeAccountIdentities<T: Config> = StorageMap<
+    #[pallet::getter(fn identities)]
+    pub type Identities<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
         PassportId,
@@ -43,15 +44,33 @@ pub mod pallet {
     >;
 
     #[pallet::storage]
-    type SomeAccountToId<T: Config> =
+    #[pallet::getter(fn passport_id)]
+    type PassportIds<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, PassportId, OptionQuery>;
 
     #[pallet::storage]
+    #[pallet::getter(fn account_ids)]
+    type AccountIds<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        PassportId,
+        BTreeSet<T::AccountId>,
+        ValueQuery,
+        DefaultAccountIdsSet<T>,
+    >;
+
+    #[pallet::storage]
+    #[pallet::getter(fn citizens_amount)]
     type CitizensAmount<T: Config> = StorageValue<_, u64, ValueQuery, DefaultCitizensAmountStorage>;
 
     #[pallet::type_value]
     pub fn DefaultCitizensAmountStorage() -> u64 {
         0_u64
+    }
+
+    #[pallet::type_value]
+    pub fn DefaultAccountIdsSet<T: Config>() -> BTreeSet<T::AccountId> {
+        Default::default()
     }
 
     #[pallet::error]
@@ -94,32 +113,36 @@ pub mod pallet {
     impl<T: Config> Pallet<T> {}
 
     impl<T: Config> IdentityTrait<T> for Pallet<T> {
+        // TODO return value of the function should be Result<(), Error>
         fn match_account_to_id(account: T::AccountId, id: PassportId) {
             assert!(
-                <SomeAccountToId<T>>::get(account.clone()) == None,
+                <PassportIds<T>>::get(account.clone()) == None,
                 "for this AccountId has been already matched PassportId"
             );
-            <SomeAccountToId<T>>::insert(account, id);
+            <PassportIds<T>>::insert(account.clone(), id);
+            <AccountIds<T>>::mutate(id, |accounts| {
+                accounts.insert(account);
+            });
         }
 
         fn push_identity(id: PassportId, id_type: IdentityType) -> Result<(), &'static str> {
             match id_type {
                 IdentityType::EResident => {
-                    let mut types = <SomeAccountIdentities<T>>::get(id);
+                    let mut types = <Identities<T>>::get(id);
                     if !types.contains(&IdentityType::Citizen) {
                         types.insert(id_type);
-                        <SomeAccountIdentities<T>>::insert(id, types);
+                        <Identities<T>>::insert(id, types);
                         Ok(())
                     } else {
                         Err("Citizen cannot become the Eresidence at the same time")
                     }
                 }
                 IdentityType::Citizen => {
-                    let mut types = <SomeAccountIdentities<T>>::get(id);
+                    let mut types = <Identities<T>>::get(id);
                     if !types.contains(&IdentityType::EResident) {
                         types.insert(id_type);
-                        let id_2 = <SomeAccountIdentities<T>>::iter().find(|item| item.0 == id);
-                        <SomeAccountIdentities<T>>::insert(id, types);
+                        let id_2 = <Identities<T>>::iter().find(|item| item.0 == id);
+                        <Identities<T>>::insert(id, types);
                         if id_2.is_none() {
                             <CitizensAmount<T>>::mutate(|res| *res += 1);
                         }
@@ -129,10 +152,10 @@ pub mod pallet {
                     }
                 }
                 _ => {
-                    let mut types = <SomeAccountIdentities<T>>::get(id);
+                    let mut types = <Identities<T>>::get(id);
                     if types.contains(&IdentityType::Citizen) {
                         types.insert(id_type);
-                        <SomeAccountIdentities<T>>::insert(id, types);
+                        <Identities<T>>::insert(id, types);
                         Ok(())
                     } else {
                         Err("We can not add any other IdentityTypes before we have add IdentityType::Citizen")
@@ -142,10 +165,10 @@ pub mod pallet {
         }
 
         fn remove_identity(id: PassportId, id_type: IdentityType) {
-            let mut types = <SomeAccountIdentities<T>>::get(id);
+            let mut types = <Identities<T>>::get(id);
             if id_type == IdentityType::Citizen {
                 types.clear();
-                <SomeAccountIdentities<T>>::remove(id);
+                <Identities<T>>::remove(id);
                 <CitizensAmount<T>>::mutate(|res| {
                     *res -= 1;
                 });
@@ -153,42 +176,23 @@ pub mod pallet {
                 // remove identity type
                 types.remove(&id_type);
                 if types.is_empty() {
-                    <SomeAccountIdentities<T>>::remove(id);
+                    <Identities<T>>::remove(id);
                 } else {
-                    <SomeAccountIdentities<T>>::insert(id, types);
+                    <Identities<T>>::insert(id, types);
                 }
             }
         }
 
-        fn get_passport_id(account: T::AccountId) -> Option<PassportId> {
-            <SomeAccountToId<T>>::get(account)
-        }
-
-        fn get_id_identities(id: PassportId) -> BTreeSet<IdentityType> {
-            <SomeAccountIdentities<T>>::get(id)
-        }
-
         fn check_id_identity(id: PassportId, id_type: IdentityType) -> bool {
-            let types = <SomeAccountIdentities<T>>::get(id);
+            let types = <Identities<T>>::get(id);
             types.contains(&id_type)
         }
 
-        fn get_account_identities(account: T::AccountId) -> BTreeSet<IdentityType> {
-            match <SomeAccountToId<T>>::get(account) {
-                Some(id) => Self::get_id_identities(id),
-                None => BTreeSet::new(),
-            }
-        }
-
         fn check_account_indetity(account: T::AccountId, id_type: IdentityType) -> bool {
-            match <SomeAccountToId<T>>::get(account) {
+            match <PassportIds<T>>::get(account) {
                 Some(id) => Self::check_id_identity(id, id_type),
                 None => false,
             }
-        }
-
-        fn get_citizens_amount() -> u64 {
-            <CitizensAmount<T>>::get()
         }
     }
 }
@@ -200,28 +204,14 @@ pub trait IdentityTrait<T: Config> {
 
     fn remove_identity(id: PassportId, id_type: IdentityType);
 
-    fn get_passport_id(account: T::AccountId) -> Option<PassportId>;
-
-    fn get_id_identities(id: PassportId) -> BTreeSet<IdentityType>;
-
     fn check_id_identity(id: PassportId, id_type: IdentityType) -> bool;
 
-    fn get_account_identities(account: T::AccountId) -> BTreeSet<IdentityType>;
-
     fn check_account_indetity(account: T::AccountId, id_type: IdentityType) -> bool;
-
-    fn get_citizens_amount() -> u64;
 }
 
 sp_api::decl_runtime_apis! {
     pub trait IdentityPalletApi<T: Config> {
-        fn get_passport_id(account: T::AccountId) -> Option<PassportId>;
-
-        fn get_id_identities(id: PassportId) -> BTreeSet<IdentityType>;
-
         fn check_id_identity(id: PassportId, id_type: IdentityType) -> bool;
-
-        fn get_account_identities(account: T::AccountId) -> BTreeSet<IdentityType>;
 
         fn check_account_indetity(account: T::AccountId, id_type: IdentityType) -> bool;
     }

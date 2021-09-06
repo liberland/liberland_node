@@ -83,7 +83,7 @@ pub mod pallet {
             let sender = ensure_signed(origin)?;
 
             ensure!(
-                T::IdentityTrait::get_passport_id(sender.clone()) == None,
+                pallet_identity::Pallet::<T>::passport_id(sender.clone()) == None,
                 <Error<T>>::AccoundIdAlreadyUsed
             );
 
@@ -136,7 +136,7 @@ pub mod pallet {
                 T::IdentityTrait::check_account_indetity(sender.clone(), IdentityType::EResident),
                 <Error<T>>::EresidenceNotFound
             );
-            let pasport_id = T::IdentityTrait::get_passport_id(sender.clone()).unwrap();
+            let pasport_id = pallet_identity::Pallet::<T>::passport_id(sender.clone()).unwrap();
             Self::create_citizen_request(pasport_id, sender);
             Ok(().into())
         }

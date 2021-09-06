@@ -109,14 +109,20 @@ pub mod pallet {
                 <Error<T>>::AccountCannotVote
             );
             //this unwrap() is correct
-            let citizen = T::IdentTrait::get_passport_id(sender.clone()).unwrap();
+            let citizen = pallet_identity::Pallet::<T>::passport_id(sender).unwrap();
             ensure!(
                 !<SomeVotedCitizens<T>>::get().contains(&citizen),
                 <Error<T>>::AlreadyVoted
             );
-            let power = T::StakingTrait::get_liber_amount(sender);
-            let b = TryInto::<u64>::try_into(power).ok().unwrap();
-            Self::alt_vote(T::ASSEMBLY_VOTING_HASH, ballot, b)?;
+            let mut power: pallet_staking::BalanceOf<T> = Zero::zero();
+            pallet_identity::Pallet::<T>::account_ids(citizen)
+                .iter()
+                .for_each(|account_id| {
+                    power += T::StakingTrait::get_liber_amount(account_id.clone());
+                });
+
+            let power = TryInto::<u64>::try_into(power).ok().unwrap();
+            Self::alt_vote(T::ASSEMBLY_VOTING_HASH, ballot, power)?;
             <SomeVotedCitizens<T>>::mutate(|voted_citizens| {
                 voted_citizens.insert(citizen);
             });
@@ -127,7 +133,8 @@ pub mod pallet {
         #[pallet::weight(1)]
         pub(super) fn add_candidate(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
-            let citizen = T::IdentTrait::get_passport_id(sender)
+            // Add check that candidate is citizen
+            let citizen = pallet_identity::Pallet::<T>::passport_id(sender)
                 .ok_or(<Error<T>>::AccountCannotBeAddedAsCandiate)?;
             Self::add_candidate_internal(citizen)?;
             Ok(().into())
@@ -160,14 +167,19 @@ pub mod pallet {
             );
 
             //this unwrap() is correct
-            let assembly = T::IdentTrait::get_passport_id(sender.clone()).unwrap();
+            let assembly = pallet_identity::Pallet::<T>::passport_id(sender).unwrap();
             ensure!(
                 !<VotedAssemblies<T>>::get().contains(&assembly),
                 <Error<T>>::AlreadyVoted
             );
-            let power = TryInto::<u64>::try_into(T::StakingTrait::get_liber_amount(sender))
-                .ok()
-                .unwrap();
+            let mut power: pallet_staking::BalanceOf<T> = Zero::zero();
+            pallet_identity::Pallet::<T>::account_ids(assembly)
+                .iter()
+                .for_each(|account_id| {
+                    power += T::StakingTrait::get_liber_amount(account_id.clone());
+                });
+            let power = TryInto::<u64>::try_into(power).ok().unwrap();
+
             T::VotingTrait::vote(law_hash, power)?;
             <VotedAssemblies<T>>::mutate(|voted_assemblyes| {
                 voted_assemblyes.insert(assembly);
@@ -190,7 +202,7 @@ pub mod pallet {
         }
 
         pub fn add_candidate_internal(id: PassportId) -> Result<(), Error<T>> {
-            let candidate = T::IdentTrait::get_id_identities(id);
+            let candidate = pallet_identity::Pallet::<T>::identities(id);
             if !candidate.contains(&IdentityType::Citizen) {
                 return Err(<Error<T>>::AccountCannotBeAddedAsCandiate);
             }

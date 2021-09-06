@@ -153,27 +153,27 @@ fn e_resident_aproving_test() {
 
         MinInteriorPallet::kyc_response(reviewer_account.clone(), request_1.clone(), true).unwrap();
         assert_eq!(
-            IdentityPallet::get_id_identities(id1),
+            IdentityPallet::identities(id1),
             [IdentityType::EResident].iter().cloned().collect()
         );
         MinInteriorPallet::update_e_resident_to_citizen_reqest(account1.clone()).unwrap();
 
         assert_eq!(
-            IdentityPallet::get_id_identities(id1),
+            IdentityPallet::identities(id1),
             [IdentityType::EResident].iter().cloned().collect()
         );
 
         let duration = 7;
         MinInteriorPallet::on_finalize(duration);
         assert_eq!(
-            IdentityPallet::get_id_identities(id1),
+            IdentityPallet::identities(id1),
             [IdentityType::EResident].iter().cloned().collect()
         );
 
         let duration = 10;
         MinInteriorPallet::on_finalize(duration);
         assert_eq!(
-            IdentityPallet::get_id_identities(id1),
+            IdentityPallet::identities(id1),
             [IdentityType::Citizen].iter().cloned().collect()
         );
 
@@ -183,7 +183,7 @@ fn e_resident_aproving_test() {
         MinInteriorPallet::kyc_response(reviewer_account.clone(), request_2.clone(), true).unwrap();
 
         assert_eq!(
-            IdentityPallet::get_id_identities(id2),
+            IdentityPallet::identities(id2),
             [IdentityType::EResident].iter().cloned().collect()
         );
 
@@ -196,7 +196,7 @@ fn e_resident_aproving_test() {
             .unwrap();
 
         assert_eq!(
-            IdentityPallet::get_id_identities(id2),
+            IdentityPallet::identities(id2),
             [IdentityType::Citizen].iter().cloned().collect()
         );
 
@@ -209,7 +209,7 @@ fn e_resident_aproving_test() {
             .unwrap();
 
         assert_eq!(
-            IdentityPallet::get_id_identities(id3),
+            IdentityPallet::identities(id3),
             [IdentityType::EResident].iter().cloned().collect()
         );
     });
@@ -241,7 +241,7 @@ fn update_assembly_to_minister_test() {
             .unwrap();
 
         assert_eq!(
-            IdentityPallet::get_id_identities(id1),
+            IdentityPallet::identities(id1),
             [IdentityType::Citizen, IdentityType::MinisterOfInterior,]
                 .iter()
                 .cloned()

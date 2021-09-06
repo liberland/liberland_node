@@ -8,21 +8,18 @@ fn basic_identity_test() {
         let account = ensure_signed(Origin::signed(1)).unwrap();
         let id = [1; 32];
         // check empty
-        assert_eq!(IdentityPallet::get_id_identities(id), BTreeSet::new());
-        assert_eq!(
-            IdentityPallet::get_account_identities(account),
-            BTreeSet::new()
-        );
+        assert_eq!(IdentityPallet::identities(id), BTreeSet::new());
+        assert_eq!(IdentityPallet::passport_id(account), None);
 
         // Push Citizen
         IdentityPallet::match_account_to_id(account, id);
         IdentityPallet::push_identity(id, IdentityType::Citizen).unwrap();
         assert_eq!(
-            IdentityPallet::get_id_identities(id),
+            IdentityPallet::identities(id),
             [IdentityType::Citizen].iter().cloned().collect()
         );
         assert_eq!(
-            IdentityPallet::get_account_identities(account),
+            IdentityPallet::identities(IdentityPallet::passport_id(account).unwrap()),
             [IdentityType::Citizen].iter().cloned().collect()
         );
         assert_eq!(
@@ -45,14 +42,14 @@ fn basic_identity_test() {
         // Push MinisterOfInterior
         IdentityPallet::push_identity(id, IdentityType::MinisterOfInterior).unwrap();
         assert_eq!(
-            IdentityPallet::get_id_identities(id),
+            IdentityPallet::identities(id),
             [IdentityType::Citizen, IdentityType::MinisterOfInterior]
                 .iter()
                 .cloned()
                 .collect()
         );
         assert_eq!(
-            IdentityPallet::get_account_identities(account),
+            IdentityPallet::identities(IdentityPallet::passport_id(account).unwrap()),
             [IdentityType::Citizen, IdentityType::MinisterOfInterior]
                 .iter()
                 .cloned()
@@ -79,11 +76,11 @@ fn basic_identity_test() {
 
         IdentityPallet::push_identity(id, IdentityType::EResident).unwrap();
         assert_eq!(
-            IdentityPallet::get_id_identities(id),
+            IdentityPallet::identities(id),
             [IdentityType::EResident].iter().cloned().collect()
         );
         assert_eq!(
-            IdentityPallet::get_account_identities(account),
+            IdentityPallet::identities(IdentityPallet::passport_id(account).unwrap()),
             [IdentityType::EResident].iter().cloned().collect()
         );
 
@@ -92,7 +89,7 @@ fn basic_identity_test() {
             true
         );
         assert_eq!(
-            IdentityPallet::get_account_identities(account),
+            IdentityPallet::identities(IdentityPallet::passport_id(account).unwrap()),
             [IdentityType::EResident].iter().cloned().collect()
         );
         assert_eq!(
@@ -111,9 +108,9 @@ fn basic_identity_test() {
         IdentityPallet::push_identity(id, IdentityType::Citizen).unwrap();
         IdentityPallet::remove_identity(id, IdentityType::Citizen);
 
-        assert_eq!(IdentityPallet::get_id_identities(id), BTreeSet::new());
+        assert_eq!(IdentityPallet::identities(id), BTreeSet::new());
         assert_eq!(
-            IdentityPallet::get_account_identities(account),
+            IdentityPallet::identities(IdentityPallet::passport_id(account).unwrap()),
             BTreeSet::new()
         );
         assert_eq!(
@@ -153,26 +150,26 @@ fn citizen_amount_test() {
         IdentityPallet::push_identity(id, IdentityType::MinisterOfInterior).unwrap();
 
         assert_eq!(
-            IdentityPallet::get_id_identities(id),
+            IdentityPallet::identities(id),
             [IdentityType::Citizen, IdentityType::MinisterOfInterior]
                 .iter()
                 .cloned()
                 .collect()
         );
-        assert_eq!(IdentityPallet::get_citizens_amount(), 1);
+        assert_eq!(IdentityPallet::citizens_amount(), 1);
 
         IdentityPallet::remove_identity(id, IdentityType::Citizen);
-        assert_eq!(IdentityPallet::get_citizens_amount(), 0);
+        assert_eq!(IdentityPallet::citizens_amount(), 0);
 
         IdentityPallet::push_identity(id, IdentityType::Citizen).unwrap();
         assert_eq!(
             IdentityPallet::push_identity(id, IdentityType::EResident),
             Err("Citizen cannot become the Eresidence at the same time")
         );
-        assert_eq!(IdentityPallet::get_citizens_amount(), 1);
+        assert_eq!(IdentityPallet::citizens_amount(), 1);
 
         IdentityPallet::push_identity(id_2, IdentityType::EResident).unwrap();
-        assert_eq!(IdentityPallet::get_citizens_amount(), 1);
+        assert_eq!(IdentityPallet::citizens_amount(), 1);
 
         assert_eq!(
             IdentityPallet::push_identity(id_2, IdentityType::MinisterOfInterior),
@@ -185,10 +182,10 @@ fn citizen_amount_test() {
         );
 
         IdentityPallet::remove_identity(id_2, IdentityType::EResident);
-        assert_eq!(IdentityPallet::get_citizens_amount(), 1);
+        assert_eq!(IdentityPallet::citizens_amount(), 1);
 
         IdentityPallet::push_identity(id_2, IdentityType::Citizen).unwrap();
 
-        assert_eq!(IdentityPallet::get_citizens_amount(), 2);
+        assert_eq!(IdentityPallet::citizens_amount(), 2);
     });
 }

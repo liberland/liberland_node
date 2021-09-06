@@ -138,15 +138,15 @@ fn basic_assembly_test() {
         AssemblyPallet::vote(account9, ballot_4).unwrap();
         AssemblyPallet::vote(account10, ballot_5).unwrap();
         assert_eq!(
-            IdentityPallet::get_id_identities([1_u8; 32]),
+            IdentityPallet::identities([1_u8; 32]),
             [IdentityType::Citizen].iter().cloned().collect()
         );
         assert_eq!(
-            IdentityPallet::get_id_identities([2_u8; 32]),
+            IdentityPallet::identities([2_u8; 32]),
             [IdentityType::Citizen].iter().cloned().collect()
         );
         assert_eq!(
-            IdentityPallet::get_id_identities([3_u8; 32]),
+            IdentityPallet::identities([3_u8; 32]),
             [IdentityType::Citizen].iter().cloned().collect()
         );
         VotingPallet::on_finalize(101);
@@ -157,21 +157,21 @@ fn basic_assembly_test() {
         winners.insert([3_u8; 32].to_vec());
         assert_eq!(AssemblyPallet::ministers_list(), winners);
         assert_eq!(
-            IdentityPallet::get_id_identities([1_u8; 32]),
+            IdentityPallet::identities([1_u8; 32]),
             [IdentityType::Citizen, IdentityType::Assembly]
                 .iter()
                 .cloned()
                 .collect()
         );
         assert_eq!(
-            IdentityPallet::get_id_identities([2_u8; 32]),
+            IdentityPallet::identities([2_u8; 32]),
             [IdentityType::Citizen, IdentityType::Assembly]
                 .iter()
                 .cloned()
                 .collect()
         );
         assert_eq!(
-            IdentityPallet::get_id_identities([3_u8; 32]),
+            IdentityPallet::identities([3_u8; 32]),
             [IdentityType::Citizen, IdentityType::Assembly]
                 .iter()
                 .cloned()

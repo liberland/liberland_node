@@ -329,16 +329,26 @@ impl pallet_documentation::Config for Runtime {}
 
 /// Configure the pallet-documentation in pallets/assembly.
 impl pallet_assembly::Config for Runtime {
-    // 1 week
-    const ASSEMBLY_ELECTION_PERIOD: BlockNumber =
-        (24 * 7 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
-    // 24 hours
-    const ASSEMBLY_VOTING_DURATION: BlockNumber =
-        (24 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    // // 1 week
+    // const ASSEMBLY_ELECTION_PERIOD: BlockNumber =
+    //     (24 * 7 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    // // 24 hours
+    // const ASSEMBLY_VOTING_DURATION: BlockNumber =
+    //     (24 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
 
-    // 1 week
+    // 6 minutes
+    const ASSEMBLY_ELECTION_PERIOD: BlockNumber =
+        (6 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    // 5 minutes
+    const ASSEMBLY_VOTING_DURATION: BlockNumber =
+        (5 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+
+    // // 1 week
+    // const LAW_VOTING_DURATION: Self::BlockNumber =
+    //     (24 * 7 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    // 4 minutes
     const LAW_VOTING_DURATION: Self::BlockNumber =
-        (24 * 7 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+        (4 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
 
     const ASSEMBLY_VOTING_HASH: Hash = Hash::zero();
     const WINNERS_AMOUNT: u32 = 3;
@@ -689,20 +699,8 @@ impl_runtime_apis! {
     }
 
     impl pallet_identity::IdentityPalletApi<Block, Runtime> for Runtime {
-        fn get_passport_id(account: AccountId) -> Option<pallet_identity::PassportId> {
-            IdentityPallet::get_passport_id(account)
-        }
-
-        fn get_id_identities(id: pallet_identity::PassportId) -> BTreeSet<pallet_identity::IdentityType> {
-            IdentityPallet::get_id_identities(id)
-        }
-
         fn check_id_identity(id: pallet_identity::PassportId, id_type: pallet_identity::IdentityType) -> bool {
             IdentityPallet::check_id_identity(id, id_type)
-        }
-
-        fn get_account_identities(account: AccountId) -> BTreeSet<pallet_identity::IdentityType> {
-            IdentityPallet::get_account_identities(account)
         }
 
         fn check_account_indetity(account: AccountId, id_type: pallet_identity::IdentityType) -> bool {

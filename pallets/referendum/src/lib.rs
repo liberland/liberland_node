@@ -129,7 +129,7 @@ pub mod pallet {
             );
 
             let mut voted = <SomeVotedCitizens<T>>::get(subject_hash);
-            let passport_id = T::IdentityTrait::get_passport_id(sender).unwrap();
+            let passport_id = pallet_identity::Pallet::<T>::passport_id(sender).unwrap();
 
             ensure!(!voted.contains(&passport_id), <Error<T>>::AlreadyVoted);
 
@@ -164,7 +164,7 @@ pub mod pallet {
             if let Some(petition) = <SomeActivePetitions<T>>::get(subject) {
                 // more than 10%
                 if voting_setting.result
-                    > ((T::IdentityTrait::get_citizens_amount() as f64)
+                    > ((pallet_identity::Pallet::<T>::citizens_amount() as f64)
                         * T::PETITION_ACCEPTANCE_PERCENTAGE) as u64
                 {
                     <SomeActiveReferendums<T>>::insert(subject, petition);
@@ -177,7 +177,7 @@ pub mod pallet {
             if let Some(referendum) = <SomeActiveReferendums<T>>::get(subject) {
                 // more than 50%
                 if voting_setting.result
-                    > ((T::IdentityTrait::get_citizens_amount() as f64)
+                    > ((pallet_identity::Pallet::<T>::citizens_amount() as f64)
                         * T::REFERENDUM_ACCEPTANCE_PERCENTAGE) as u64
                 {
                     <SomeSuccessfulReferendums<T>>::insert(subject, referendum);
