@@ -281,12 +281,16 @@ impl Default for ExtBuilder {
         }
     }
 }
-
+parameter_types! {
+    pub const AssemblyElectionPeriod: u64 = 10;
+    pub const AssemblyVotingDuration: u64 = 100;
+    pub const LawVotingDuration: u64 = 10;
+}
 impl pallet_assembly::Config for Test {
-    const ASSEMBLY_ELECTION_PERIOD: Self::BlockNumber = 10;
+    type AssemblyElectionPeriod = AssemblyElectionPeriod;
     const ASSEMBLY_VOTING_HASH: Self::Hash = sp_core::H256::zero();
-    const ASSEMBLY_VOTING_DURATION: Self::BlockNumber = 100;
-    const LAW_VOTING_DURATION: Self::BlockNumber = 10;
+    type AssemblyVotingDuration = AssemblyVotingDuration;
+    type LawVotingDuration = LawVotingDuration;
     const WINNERS_AMOUNT: u32 = 3;
     type IdentTrait = IdentityPallet;
     type VotingTrait = VotingPallet;

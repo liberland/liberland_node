@@ -327,6 +327,15 @@ impl pallet_referendum::Config for Runtime {
 /// Configure the pallet-documentation in pallets/documentation.
 impl pallet_documentation::Config for Runtime {}
 
+parameter_types! {
+    // 6 minutes
+    pub const AssemblyElectionPeriod: u32 = 6 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+    // 5 minutes
+    pub const AssemblyVotingDuration: u32 = 5 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+    // 4 minutes
+    pub const LawVotingDuration: u32 = 4 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+}
+
 /// Configure the pallet-documentation in pallets/assembly.
 impl pallet_assembly::Config for Runtime {
     // // 1 week
@@ -337,18 +346,16 @@ impl pallet_assembly::Config for Runtime {
     //     (24 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
 
     // 6 minutes
-    const ASSEMBLY_ELECTION_PERIOD: BlockNumber =
-        (6 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    type AssemblyElectionPeriod = AssemblyElectionPeriod;
     // 5 minutes
-    const ASSEMBLY_VOTING_DURATION: BlockNumber =
-        (5 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    type AssemblyVotingDuration = AssemblyVotingDuration;
+    //
 
     // // 1 week
     // const LAW_VOTING_DURATION: Self::BlockNumber =
     //     (24 * 7 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
     // 4 minutes
-    const LAW_VOTING_DURATION: Self::BlockNumber =
-        (4 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    type LawVotingDuration = LawVotingDuration;
 
     const ASSEMBLY_VOTING_HASH: Hash = Hash::zero();
     const WINNERS_AMOUNT: u32 = 3;

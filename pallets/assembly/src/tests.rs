@@ -288,7 +288,7 @@ fn basic_low_voting_test() {
         IdentityPallet::match_account_to_id(ensure_signed(account10.clone()).unwrap(), id10);
         IdentityPallet::push_identity(id10.clone(), IdentityType::Citizen).unwrap();
 
-        AssemblyPallet::on_initialize(10);
+        AssemblyPallet::on_initialize(10 + 100);
         let v = vec![
             [2_u8; 32].to_vec(),
             [1_u8; 32].to_vec(),
@@ -338,7 +338,6 @@ fn basic_low_voting_test() {
         ];
         let voutes = VecDeque::from(v);
         let ballot_5 = pallet_voting::AltVote::new(voutes);
-
         AssemblyPallet::vote(account6, ballot_1).unwrap();
         AssemblyPallet::vote(account7, ballot_2).unwrap();
         AssemblyPallet::vote(account8, ballot_3).unwrap();
@@ -356,7 +355,7 @@ fn basic_low_voting_test() {
             IdentityPallet::identities([3_u8; 32]),
             [IdentityType::Citizen].iter().cloned().collect()
         );
-        VotingPallet::on_finalize(101);
+        VotingPallet::on_finalize(10 + 100 + 1);
 
         let mut winners = BTreeMap::new();
         winners.insert([1_u8; 32].to_vec(), 3);

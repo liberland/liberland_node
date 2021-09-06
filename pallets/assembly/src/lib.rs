@@ -27,13 +27,16 @@ pub mod pallet {
         + pallet_voting::Config
         + pallet_staking::Config
     {
-        const ASSEMBLY_ELECTION_PERIOD: Self::BlockNumber;
+        #[pallet::constant]
+        type AssemblyElectionPeriod: Get<Self::BlockNumber>;
 
-        const ASSEMBLY_VOTING_DURATION: Self::BlockNumber;
+        #[pallet::constant]
+        type AssemblyVotingDuration: Get<Self::BlockNumber>;
+
+        #[pallet::constant]
+        type LawVotingDuration: Get<Self::BlockNumber>;
 
         const ASSEMBLY_VOTING_HASH: Self::Hash;
-
-        const LAW_VOTING_DURATION: Self::BlockNumber;
 
         const WINNERS_AMOUNT: u32;
 
@@ -60,8 +63,9 @@ pub mod pallet {
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
         fn on_initialize(block_number: BlockNumberFor<T>) -> frame_support::weights::Weight {
-            if (block_number % (T::ASSEMBLY_ELECTION_PERIOD + T::ASSEMBLY_VOTING_DURATION))
-                .is_zero()
+            if (block_number
+                % (T::AssemblyElectionPeriod::get() + T::AssemblyVotingDuration::get()))
+            .is_zero()
             {
                 Self::initialize();
             }
@@ -157,7 +161,7 @@ pub mod pallet {
                 T::IdentTrait::check_account_indetity(sender, IdentityType::Assembly),
                 <Error<T>>::AccountCannotBeAddedAsCandiate
             );
-            T::VotingTrait::create_voting(law_hash, T::LAW_VOTING_DURATION)?;
+            T::VotingTrait::create_voting(law_hash, T::LawVotingDuration::get())?;
             <Laws<T>>::insert(law_hash, LawState::InProgress);
             Ok(().into())
         }
@@ -198,7 +202,7 @@ pub mod pallet {
             let candidates = <CandidatesList<T>>::get();
             T::VotingTrait::create_alt_voting_list(
                 T::ASSEMBLY_VOTING_HASH,
-                T::ASSEMBLY_VOTING_DURATION,
+                T::AssemblyVotingDuration::get(),
                 candidates,
                 T::WINNERS_AMOUNT,
             )
