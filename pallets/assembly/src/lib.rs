@@ -3,7 +3,7 @@ use frame_support::codec::{Decode, Encode};
 pub use pallet::*;
 use pallet_identity::{IdentityTrait, IdentityType, PassportId};
 use pallet_voting::{AltVote, Candidate, VotingTrait};
-use sp_std::collections::btree_set::BTreeSet;
+use sp_std::collections::{btree_map::BTreeMap, btree_set::BTreeSet};
 use sp_std::convert::TryInto;
 #[cfg(test)]
 mod mock;
@@ -75,7 +75,7 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn ministers_list)]
     type CurrentMinistersList<T: Config> =
-        StorageValue<_, BTreeSet<Candidate>, ValueQuery, DefaultCandidates>;
+        StorageValue<_, BTreeMap<Candidate, u64>, ValueQuery, DefaultMinisters>;
 
     #[pallet::storage]
     type SomeVotedCitizens<T: Config> =
@@ -91,11 +91,16 @@ pub mod pallet {
 
     #[pallet::type_value]
     pub fn DefaultCandidates() -> BTreeSet<Candidate> {
-        BTreeSet::default()
+        Default::default()
     }
 
     #[pallet::type_value]
     pub fn DefaultVotedCitizens() -> BTreeSet<PassportId> {
+        Default::default()
+    }
+
+    #[pallet::type_value]
+    pub fn DefaultMinisters() -> BTreeMap<Candidate, u64> {
         Default::default()
     }
 
@@ -172,13 +177,11 @@ pub mod pallet {
                 !<VotedAssemblies<T>>::get().contains(&assembly),
                 <Error<T>>::AlreadyVoted
             );
-            let mut power: pallet_staking::BalanceOf<T> = Zero::zero();
-            pallet_identity::Pallet::<T>::account_ids(assembly)
-                .iter()
-                .for_each(|account_id| {
-                    power += T::StakingTrait::get_liber_amount(account_id.clone());
-                });
-            let power = TryInto::<u64>::try_into(power).ok().unwrap();
+
+            //this unwrap() is correct
+            let power = *<CurrentMinistersList<T>>::get()
+                .get(&assembly.to_vec())
+                .unwrap();
 
             T::VotingTrait::vote(law_hash, power)?;
             <VotedAssemblies<T>>::mutate(|voted_assemblyes| {
@@ -226,14 +229,14 @@ pub mod pallet {
         fn finalize_voting(
             _subject: T::Hash,
             _voting_settings: pallet_voting::AltVotingListSettings<T::BlockNumber>,
-            winners: BTreeSet<Candidate>,
+            winners: BTreeMap<Candidate, u64>,
         ) {
             <CurrentMinistersList<T>>::mutate(|e| {
-                for i in winners.iter() {
+                for (id, power) in winners.iter() {
                     let mut id_slice: [u8; 32] = [Default::default(); 32];
-                    id_slice[..i.len()].copy_from_slice(i);
+                    id_slice[..id.len()].copy_from_slice(id);
                     T::IdentTrait::push_identity(id_slice, IdentityType::Assembly).unwrap();
-                    e.insert(i.clone());
+                    e.insert(id.clone(), *power);
                 }
             });
         }
@@ -244,8 +247,8 @@ pub mod pallet {
             subject: T::Hash,
             voting_setting: pallet_voting::VotingSettings<T::BlockNumber>,
         ) {
-            let ministers = <CurrentMinistersList<T>>::get();
-            if ((voting_setting.result as f64 / ministers.len() as f64) * 100.0) > 50.0 {
+            let total_power: u64 = <CurrentMinistersList<T>>::get().iter().map(|e| e.1).sum();
+            if ((voting_setting.result as f64 / total_power as f64) * 100.0) > 50.0 {
                 <Laws<T>>::insert(subject, LawState::Approved);
             } else {
                 <Laws<T>>::insert(subject, LawState::Declined);

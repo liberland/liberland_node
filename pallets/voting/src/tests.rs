@@ -107,9 +107,9 @@ fn basic_alt_voting_list_test() {
             ));
         });
 
-        let mut winners = BTreeSet::new();
-        winners.insert([1_u8; 32].to_vec());
-        winners.insert([3_u8; 32].to_vec());
+        let mut winners = BTreeMap::new();
+        winners.insert([1_u8; 32].to_vec(), 4);
+        winners.insert([3_u8; 32].to_vec(), 7);
         assert_eq!(
             VotingPallet::calculate_alt_vote_winners_list(subject).unwrap(),
             winners
@@ -210,9 +210,9 @@ fn alt_vote_list_teset_with_power() {
             1
         ));
 
-        let mut winners = BTreeSet::new();
-        winners.insert([1_u8; 32].to_vec());
-        winners.insert([2_u8; 32].to_vec());
+        let mut winners = BTreeMap::new();
+        winners.insert([1_u8; 32].to_vec(), 35);
+        winners.insert([2_u8; 32].to_vec(), 14);
 
         assert_eq!(
             VotingPallet::calculate_alt_vote_winners_list(subject).unwrap(),

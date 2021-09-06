@@ -17,7 +17,7 @@ pub trait FinalizeAltVotingListDispatchTrait<T: Config> {
     fn finalize_voting(
         subject: T::Hash,
         voting_settings: AltVotingListSettings<T::BlockNumber>,
-        winners: BTreeSet<Candidate>,
+        winners: BTreeMap<Candidate, u64>,
     );
 }
 
@@ -70,7 +70,7 @@ finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7 _8 _9 _10}
 macro_rules! finalize_voting_dispatch_trait_impls {
     ($($name:ident)*) => {
         impl<T: Config, $($name: FinalizeAltVotingListDispatchTrait<T>,)*> FinalizeAltVotingListDispatchTrait<T> for ($($name,)*) {
-            fn finalize_voting(_subject: T::Hash, _voting_setting: AltVotingListSettings<T::BlockNumber>,_winners: BTreeSet<Candidate>) {
+            fn finalize_voting(_subject: T::Hash, _voting_setting: AltVotingListSettings<T::BlockNumber>,_winners: BTreeMap<Candidate, u64>) {
                 $($name::finalize_voting(_subject.clone(), _voting_setting.clone(),_winners.clone());)*
             }
         }

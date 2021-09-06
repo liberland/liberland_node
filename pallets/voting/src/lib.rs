@@ -208,7 +208,7 @@ pub mod pallet {
 
         pub fn calculate_alt_vote_winners_list(
             subject: T::Hash,
-        ) -> Result<BTreeSet<Candidate>, Error<T>> {
+        ) -> Result<BTreeMap<Candidate, u64>, Error<T>> {
             if let Some(settings) = <AltActiveListVoitings<T>>::get(subject) {
                 let ballots_list = <BallotsStorage<T>>::get(subject);
 
@@ -255,11 +255,7 @@ pub mod pallet {
                     }
                     candidate_list.remove(&removeble_key);
                 }
-                let mut winners_list = BTreeSet::new();
-                for i in candidate_list.iter() {
-                    winners_list.insert(i.0.clone());
-                }
-                return Ok(winners_list);
+                return Ok(candidate_list);
             }
 
             Err(<Error<T>>::VotingSubjectDoesNotExist)
