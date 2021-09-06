@@ -9,13 +9,12 @@ fn basic_voting_test() {
     new_test_ext().execute_with(|| {
         type Hashing = <Test as frame_system::Config>::Hashing;
 
-        assert_eq!(VotingPallet::get_active_votings().len(), 0);
-
         let subject = Hashing::hash(&[1; 32]);
         let duration = 100;
 
+        assert!(VotingPallet::active_votings(subject.clone()).is_none());
         assert_ok!(VotingPallet::create_voting(subject.clone(), duration));
-        assert_eq!(VotingPallet::get_active_votings().len(), 1);
+        assert!(VotingPallet::active_votings(subject.clone()).is_some());
 
         assert_err!(VotingPallet::create_voting(subject.clone(), duration));
 
@@ -25,10 +24,9 @@ fn basic_voting_test() {
 
         VotingPallet::on_finalize(duration);
 
-        assert_eq!(VotingPallet::get_active_votings().len(), 0);
-
+        assert!(VotingPallet::active_votings(subject.clone()).is_none());
         assert_ok!(VotingPallet::create_voting(subject.clone(), duration));
-        assert_eq!(VotingPallet::get_active_votings().len(), 1);
+        assert!(VotingPallet::active_votings(subject.clone()).is_some());
     });
 }
 
@@ -42,14 +40,13 @@ fn basic_alt_voting_test() {
         let subject = Hashing::hash(&[1; 32]);
         let duration = 100;
 
-        assert_eq!(VotingPallet::get_active_alt_votings().len(), 0);
-
+        assert!(VotingPallet::active_alt_votings(subject.clone()).is_none());
         assert_ok!(VotingPallet::create_alt_voting(
             subject.clone(),
             duration,
             subjects_list.clone()
         ));
-        assert_eq!(VotingPallet::get_active_alt_votings().len(), 1);
+        assert!(VotingPallet::active_alt_votings(subject.clone()).is_some());
 
         ballots_list.iter().for_each(|ballot| {
             let power = 1;
@@ -67,14 +64,13 @@ fn basic_alt_voting_test() {
 
         VotingPallet::on_finalize(duration);
 
-        assert_eq!(VotingPallet::get_active_alt_votings().len(), 0);
-
+        assert!(VotingPallet::active_alt_votings(subject.clone()).is_none());
         assert_ok!(VotingPallet::create_alt_voting(
             subject.clone(),
             duration,
             subjects_list.clone()
         ));
-        assert_eq!(VotingPallet::get_active_alt_votings().len(), 1);
+        assert!(VotingPallet::active_alt_votings(subject.clone()).is_some());
     });
 }
 
@@ -88,15 +84,14 @@ fn basic_alt_voting_list_test() {
         let subject = Hashing::hash(&[1; 32]);
         let duration = 100;
 
-        assert_eq!(VotingPallet::get_active_alt_list_votings().len(), 0);
-
+        assert!(VotingPallet::active_alt_list_votings(subject.clone()).is_none());
         assert_ok!(VotingPallet::create_alt_voting_list(
             subject.clone(),
             duration,
             subjects_list.clone(),
             2,
         ));
-        assert_eq!(VotingPallet::get_active_alt_list_votings().len(), 1);
+        assert!(VotingPallet::active_alt_list_votings(subject.clone()).is_some());
 
         ballots_list.iter().for_each(|ballot| {
             let power = 1;
@@ -116,15 +111,14 @@ fn basic_alt_voting_list_test() {
         );
         VotingPallet::on_finalize(duration);
 
-        assert_eq!(VotingPallet::get_active_alt_list_votings().len(), 0);
-
+        assert!(VotingPallet::active_alt_list_votings(subject.clone()).is_none());
         assert_ok!(VotingPallet::create_alt_voting_list(
             subject.clone(),
             duration,
             subjects_list.clone(),
             2,
         ));
-        assert_eq!(VotingPallet::get_active_alt_list_votings().len(), 1);
+        assert!(VotingPallet::active_alt_list_votings(subject.clone()).is_some());
     });
 }
 
@@ -136,14 +130,15 @@ fn alt_vote_list_teset_with_power() {
         let subjects_list = get_mock_subjects();
         let subject = Hashing::hash(&[1; 32]);
         let duration = 100;
-        assert_eq!(VotingPallet::get_active_alt_list_votings().len(), 0);
 
+        assert!(VotingPallet::active_alt_list_votings(subject.clone()).is_none());
         assert_ok!(VotingPallet::create_alt_voting_list(
             subject.clone(),
             duration,
             subjects_list.clone(),
             2,
         ));
+        assert!(VotingPallet::active_alt_list_votings(subject.clone()).is_some());
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
@@ -229,13 +224,14 @@ fn alt_vote_teset_with_power() {
         let subjects_list = get_mock_subjects();
         let subject = Hashing::hash(&[1; 32]);
         let duration = 100;
-        assert_eq!(VotingPallet::get_active_alt_votings().len(), 0);
 
+        assert!(VotingPallet::active_alt_votings(subject.clone()).is_none());
         assert_ok!(VotingPallet::create_alt_voting(
             subject.clone(),
             duration,
             subjects_list.clone(),
         ));
+        assert!(VotingPallet::active_alt_votings(subject.clone()).is_some());
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),

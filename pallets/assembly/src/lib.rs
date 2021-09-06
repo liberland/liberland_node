@@ -60,7 +60,9 @@ pub mod pallet {
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
         fn on_initialize(block_number: BlockNumberFor<T>) -> frame_support::weights::Weight {
-            if (block_number % T::ASSEMBLY_ELECTION_PERIOD).is_zero() {
+            if (block_number % (T::ASSEMBLY_ELECTION_PERIOD + T::ASSEMBLY_VOTING_DURATION))
+                .is_zero()
+            {
                 Self::initialize();
             }
             0

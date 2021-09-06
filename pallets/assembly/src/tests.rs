@@ -79,7 +79,7 @@ fn basic_assembly_test() {
         IdentityPallet::match_account_to_id(ensure_signed(account10.clone()).unwrap(), id10);
         IdentityPallet::push_identity(id10.clone(), IdentityType::Citizen).unwrap();
 
-        AssemblyPallet::on_initialize(10);
+        AssemblyPallet::on_initialize(10 + 100);
         let v = vec![
             [2_u8; 32].to_vec(),
             [1_u8; 32].to_vec(),
@@ -147,7 +147,7 @@ fn basic_assembly_test() {
             IdentityPallet::identities([3_u8; 32]),
             [IdentityType::Citizen].iter().cloned().collect()
         );
-        VotingPallet::on_finalize(101);
+        VotingPallet::on_finalize(10 + 100 + 1);
 
         let mut winners = BTreeMap::new();
         winners.insert([1_u8; 32].to_vec(), 3);
@@ -208,7 +208,7 @@ fn assembly_errorss_test() {
             <Error<Test>>::VotingNotFound
         );
 
-        AssemblyPallet::on_initialize(10);
+        AssemblyPallet::on_initialize(10 + 100);
 
         assert_ok!(AssemblyPallet::vote(account2.clone(), ballot_1.clone()));
 
@@ -402,7 +402,7 @@ fn basic_low_voting_test() {
             AssemblyPallet::laws(law_hash_2).unwrap(),
             LawState::InProgress,
         );
-        VotingPallet::on_finalize(11);
+        VotingPallet::on_finalize(10 + 100 + 1);
 
         assert_eq!(
             AssemblyPallet::laws(law_hash_1).unwrap(),

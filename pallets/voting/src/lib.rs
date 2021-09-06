@@ -59,15 +59,18 @@ pub mod pallet {
     }
 
     #[pallet::storage]
+    #[pallet::getter(fn active_votings)]
     type ActiveVotings<T: Config> =
         StorageMap<_, Blake2_128Concat, T::Hash, VotingSettings<T::BlockNumber>, OptionQuery>;
 
     #[pallet::storage]
-    type AltActiveVoitings<T: Config> =
+    #[pallet::getter(fn active_alt_votings)]
+    type ActiveAltVoitings<T: Config> =
         StorageMap<_, Blake2_128Concat, T::Hash, AltVoutingSettings<T::BlockNumber>, OptionQuery>;
 
     #[pallet::storage]
-    type AltActiveListVoitings<T: Config> = StorageMap<
+    #[pallet::getter(fn active_alt_list_votings)]
+    type ActiveAltListVoitings<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
         T::Hash,
@@ -75,6 +78,7 @@ pub mod pallet {
         OptionQuery,
     >;
     #[pallet::storage]
+    #[pallet::getter(fn ballots_list)]
     type BallotsStorage<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
@@ -105,7 +109,7 @@ pub mod pallet {
             }
         }
         fn finalize_alt_votings(block_number: BlockNumberFor<T>) {
-            <AltActiveVoitings<T>>::iter().for_each(|(subject, alt_voting_settings)| {
+            <ActiveAltVoitings<T>>::iter().for_each(|(subject, alt_voting_settings)| {
                 if (alt_voting_settings.voting_duration + alt_voting_settings.submitted_height)
                     <= block_number
                 {
@@ -117,12 +121,12 @@ pub mod pallet {
                     );
 
                     <BallotsStorage<T>>::remove(subject);
-                    <AltActiveVoitings<T>>::remove(subject);
+                    <ActiveAltVoitings<T>>::remove(subject);
                 }
             });
         }
         fn finalize_list_alt_votings(block_number: BlockNumberFor<T>) {
-            <AltActiveListVoitings<T>>::iter().for_each(|(subject, alt_voting_settings)| {
+            <ActiveAltListVoitings<T>>::iter().for_each(|(subject, alt_voting_settings)| {
                 if (alt_voting_settings.voting_duration + alt_voting_settings.submitted_height)
                     <= block_number
                 {
@@ -133,12 +137,12 @@ pub mod pallet {
                         winners,
                     );
                     <BallotsStorage<T>>::remove(subject);
-                    <AltActiveListVoitings<T>>::remove(subject);
+                    <ActiveAltListVoitings<T>>::remove(subject);
                 }
             });
         }
         pub fn calculate_alt_vote_winner(subject: T::Hash) -> Result<Candidate, Error<T>> {
-            if let Some(settings) = <AltActiveVoitings<T>>::get(subject) {
+            if let Some(settings) = <ActiveAltVoitings<T>>::get(subject) {
                 let ballots_list = <BallotsStorage<T>>::get(subject);
 
                 let mut candidate_list: BTreeMap<Candidate, u64> = settings
@@ -209,7 +213,7 @@ pub mod pallet {
         pub fn calculate_alt_vote_winners_list(
             subject: T::Hash,
         ) -> Result<BTreeMap<Candidate, u64>, Error<T>> {
-            if let Some(settings) = <AltActiveListVoitings<T>>::get(subject) {
+            if let Some(settings) = <ActiveAltListVoitings<T>>::get(subject) {
                 let ballots_list = <BallotsStorage<T>>::get(subject);
 
                 let mut candidate_list: BTreeMap<Candidate, u64> = settings
@@ -263,18 +267,6 @@ pub mod pallet {
     }
 
     impl<T: Config> VotingTrait<T> for Pallet<T> {
-        fn get_active_votings() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>> {
-            <ActiveVotings<T>>::iter().collect()
-        }
-
-        fn get_active_alt_votings() -> BTreeMap<T::Hash, AltVoutingSettings<T::BlockNumber>> {
-            <AltActiveVoitings<T>>::iter().collect()
-        }
-        fn get_active_alt_list_votings() -> BTreeMap<T::Hash, AltVotingListSettings<T::BlockNumber>>
-        {
-            <AltActiveListVoitings<T>>::iter().collect()
-        }
-
         fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>> {
             ensure!(
                 <ActiveVotings<T>>::get(subject) == None,
@@ -294,6 +286,53 @@ pub mod pallet {
             Ok(())
         }
 
+        fn create_alt_voting(
+            subject: T::Hash,
+            duration: T::BlockNumber,
+            candidates: BTreeSet<Candidate>,
+        ) -> Result<(), Error<T>> {
+            ensure!(
+                <ActiveAltVoitings<T>>::get(subject) == None,
+                <Error<T>>::VotingHasBeenCreated
+            );
+
+            let block_number = <frame_system::Pallet<T>>::block_number();
+            <ActiveAltVoitings<T>>::insert(
+                subject,
+                AltVoutingSettings {
+                    voting_duration: duration,
+                    submitted_height: block_number,
+                    candidates,
+                },
+            );
+
+            Ok(())
+        }
+
+        fn create_alt_voting_list(
+            subject: T::Hash,
+            duration: T::BlockNumber,
+            candidates: BTreeSet<Candidate>,
+            winners_amount: u32,
+        ) -> Result<(), Error<T>> {
+            ensure!(
+                <ActiveAltListVoitings<T>>::get(subject) == None,
+                <Error<T>>::VotingHasBeenCreated
+            );
+
+            let block_nummber = <frame_system::Pallet<T>>::block_number();
+            <ActiveAltListVoitings<T>>::insert(
+                subject,
+                AltVotingListSettings {
+                    voting_duration: duration,
+                    submitted_height: block_nummber,
+                    candidates,
+                    winners_amount,
+                },
+            );
+            Ok(())
+        }
+
         fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>> {
             match <ActiveVotings<T>>::get(subject) {
                 Some(mut settings) => {
@@ -306,7 +345,7 @@ pub mod pallet {
         }
 
         fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
-            match <AltActiveVoitings<T>>::get(subject) {
+            match <ActiveAltVoitings<T>>::get(subject) {
                 Some(_) => {
                     let mut ballots_list = <BallotsStorage<T>>::get(subject);
                     ballots_list.push((ballot, power));
@@ -317,54 +356,8 @@ pub mod pallet {
             }
         }
 
-        fn create_alt_voting(
-            subject: T::Hash,
-            duration: T::BlockNumber,
-            candidates: BTreeSet<Candidate>,
-        ) -> Result<(), Error<T>> {
-            ensure!(
-                <AltActiveVoitings<T>>::get(subject) == None,
-                <Error<T>>::VotingHasBeenCreated
-            );
-
-            let block_number = <frame_system::Pallet<T>>::block_number();
-            <AltActiveVoitings<T>>::insert(
-                subject,
-                AltVoutingSettings {
-                    voting_duration: duration,
-                    submitted_height: block_number,
-                    candidates,
-                },
-            );
-
-            Ok(())
-        }
-        fn create_alt_voting_list(
-            subject: T::Hash,
-            duration: T::BlockNumber,
-            candidates: BTreeSet<Candidate>,
-            winners_amount: u32,
-        ) -> Result<(), Error<T>> {
-            ensure!(
-                <AltActiveListVoitings<T>>::get(subject) == None,
-                <Error<T>>::VotingHasBeenCreated
-            );
-
-            let block_nummber = <frame_system::Pallet<T>>::block_number();
-            <AltActiveListVoitings<T>>::insert(
-                subject,
-                AltVotingListSettings {
-                    voting_duration: duration,
-                    submitted_height: block_nummber,
-                    candidates,
-                    winners_amount,
-                },
-            );
-            Ok(())
-        }
-
         fn alt_vote_list(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
-            match <AltActiveListVoitings<T>>::get(subject) {
+            match <ActiveAltListVoitings<T>>::get(subject) {
                 Some(_) => {
                     let mut ballots_list = <BallotsStorage<T>>::get(subject);
                     ballots_list.push((ballot, power));
@@ -378,15 +371,7 @@ pub mod pallet {
 }
 
 pub trait VotingTrait<T: Config> {
-    fn get_active_votings() -> BTreeMap<T::Hash, VotingSettings<T::BlockNumber>>;
-
-    fn get_active_alt_votings() -> BTreeMap<T::Hash, AltVoutingSettings<T::BlockNumber>>;
-
-    fn get_active_alt_list_votings() -> BTreeMap<T::Hash, AltVotingListSettings<T::BlockNumber>>;
-
     fn create_voting(subject: T::Hash, duration: T::BlockNumber) -> Result<(), Error<T>>;
-
-    fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>>;
 
     fn create_alt_voting(
         subject: T::Hash,
@@ -400,6 +385,8 @@ pub trait VotingTrait<T: Config> {
         candidates: BTreeSet<Candidate>,
         winners_amount: u32,
     ) -> Result<(), Error<T>>;
+
+    fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>>;
 
     fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>>;
 
