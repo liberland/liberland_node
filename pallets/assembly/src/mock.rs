@@ -285,13 +285,15 @@ parameter_types! {
     pub const AssemblyElectionPeriod: u64 = 10;
     pub const AssemblyVotingDuration: u64 = 100;
     pub const LawVotingDuration: u64 = 10;
+    pub const AssemblyVotingHash: H256 = sp_core::H256::zero();
+    pub const WinnersAmount: u32 = 3;
 }
 impl pallet_assembly::Config for Test {
     type AssemblyElectionPeriod = AssemblyElectionPeriod;
-    const ASSEMBLY_VOTING_HASH: Self::Hash = sp_core::H256::zero();
+    type AssemblyVotingHash = AssemblyVotingHash;
     type AssemblyVotingDuration = AssemblyVotingDuration;
     type LawVotingDuration = LawVotingDuration;
-    const WINNERS_AMOUNT: u32 = 3;
+    type WinnersAmount = WinnersAmount;
     type IdentTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
     type StakingTrait = Staking;

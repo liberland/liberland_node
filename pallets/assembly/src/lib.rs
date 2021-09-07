@@ -36,9 +36,10 @@ pub mod pallet {
         #[pallet::constant]
         type LawVotingDuration: Get<Self::BlockNumber>;
 
-        const ASSEMBLY_VOTING_HASH: Self::Hash;
+        #[pallet::constant]
+        type AssemblyVotingHash: Get<Self::Hash>;
 
-        const WINNERS_AMOUNT: u32;
+        type WinnersAmount: Get<u32>;
 
         type IdentTrait: IdentityTrait<Self>;
 
@@ -133,7 +134,7 @@ pub mod pallet {
                 });
 
             let power = TryInto::<u64>::try_into(power).ok().unwrap();
-            Self::alt_vote(T::ASSEMBLY_VOTING_HASH, ballot, power)?;
+            Self::alt_vote(T::AssemblyVotingHash::get(), ballot, power)?;
             <SomeVotedCitizens<T>>::mutate(|voted_citizens| {
                 voted_citizens.insert(citizen);
             });
@@ -201,10 +202,10 @@ pub mod pallet {
         fn initialize() {
             let candidates = <CandidatesList<T>>::get();
             T::VotingTrait::create_alt_voting_list(
-                T::ASSEMBLY_VOTING_HASH,
+                T::AssemblyVotingHash::get(),
                 T::AssemblyVotingDuration::get(),
                 candidates,
-                T::WINNERS_AMOUNT,
+                T::WinnersAmount::get(),
             )
             .unwrap();
             <CandidatesList<T>>::kill();

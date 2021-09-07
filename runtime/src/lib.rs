@@ -11,7 +11,7 @@ use pallet_grandpa::fg_primitives;
 use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata, H256};
 use sp_runtime::traits::{
     AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, OpaqueKeys, Verify,
 };
@@ -334,6 +334,10 @@ parameter_types! {
     pub const AssemblyVotingDuration: u32 = 5 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
     // 4 minutes
     pub const LawVotingDuration: u32 = 4 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+    pub const AssemblyVotingHash: H256 = sp_core::H256::zero();
+    pub const WinnersAmount: u32 = 3;
+
+
 }
 
 /// Configure the pallet-documentation in pallets/assembly.
@@ -357,8 +361,8 @@ impl pallet_assembly::Config for Runtime {
     // 4 minutes
     type LawVotingDuration = LawVotingDuration;
 
-    const ASSEMBLY_VOTING_HASH: Hash = Hash::zero();
-    const WINNERS_AMOUNT: u32 = 3;
+    type AssemblyVotingHash = AssemblyVotingHash;
+    type WinnersAmount = WinnersAmount;
 
     type IdentTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
