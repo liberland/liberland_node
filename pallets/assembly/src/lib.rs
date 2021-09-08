@@ -70,6 +70,7 @@ pub mod pallet {
             .is_zero()
             {
                 Self::initialize();
+                <VotingState<T>>::mutate(|state| *state = true);
             }
             0
         }
@@ -94,6 +95,10 @@ pub mod pallet {
         StorageValue<_, BTreeSet<PassportId>, ValueQuery, DefaultVotedCitizens>;
 
     #[pallet::storage]
+    #[pallet::getter(fn voting_state)]
+    type VotingState<T: Config> = StorageValue<_, bool, ValueQuery, DefaultState>;
+
+    #[pallet::storage]
     #[pallet::getter(fn laws)]
     type Laws<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, LawState, OptionQuery>;
 
@@ -105,6 +110,11 @@ pub mod pallet {
     #[pallet::type_value]
     pub fn DefaultVotedCitizens() -> BTreeSet<PassportId> {
         Default::default()
+    }
+
+    #[pallet::type_value]
+    pub fn DefaultState() -> bool {
+        false
     }
 
     #[pallet::type_value]
@@ -247,6 +257,7 @@ pub mod pallet {
                     e.insert(id.clone(), *power);
                 }
             });
+            <VotingState<T>>::mutate(|state| *state = false);
         }
     }
 

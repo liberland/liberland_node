@@ -78,8 +78,10 @@ fn basic_assembly_test() {
         Staking::liberland_bond(Origin::signed(17), 17, 1, RewardDestination::Controller).unwrap();
         IdentityPallet::match_account_to_id(ensure_signed(account10.clone()).unwrap(), id10);
         IdentityPallet::push_identity(id10.clone(), IdentityType::Citizen).unwrap();
-
+        // voting state test
+        assert_eq!(AssemblyPallet::voting_state(), false);
         AssemblyPallet::on_initialize(10 + 100);
+        assert_eq!(AssemblyPallet::voting_state(), true);
         let v = vec![
             [2_u8; 32].to_vec(),
             [1_u8; 32].to_vec(),
@@ -148,7 +150,7 @@ fn basic_assembly_test() {
             [IdentityType::Citizen].iter().cloned().collect()
         );
         VotingPallet::on_finalize(10 + 100 + 1);
-
+        assert_eq!(AssemblyPallet::voting_state(), false);
         let mut winners = BTreeMap::new();
         winners.insert([1_u8; 32].to_vec(), 3);
         winners.insert([2_u8; 32].to_vec(), 1);
