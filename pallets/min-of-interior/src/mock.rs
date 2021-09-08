@@ -55,8 +55,11 @@ impl system::Config for Test {
 
 impl pallet_identity::Config for Test {}
 
+parameter_types! {
+    pub const RequestBlockNummber: u32 = 10;
+}
 impl pallet_kyc::Config for Test {
-    const REQUEST_BLOCK_NUMMBER: Self::BlockNumber = 10;
+    type RequestBlockNummber = RequestBlockNummber;
     type IdentityTrait = IdentityPallet;
 }
 

@@ -25,7 +25,8 @@ pub mod pallet {
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config: frame_system::Config + pallet_identity::Config {
-        const REQUEST_BLOCK_NUMMBER: Self::BlockNumber;
+        #[pallet::constant]
+        type RequestBlockNummber: Get<Self::BlockNumber>;
         type IdentityTrait: pallet_identity::IdentityTrait<Self>;
     }
 
@@ -192,7 +193,7 @@ pub mod pallet {
         }
         pub fn check_request_time(block_nummber: T::BlockNumber) {
             <EresidentRequests<T>>::iter().for_each(|value| {
-                if value.1.submitted_height + T::REQUEST_BLOCK_NUMMBER <= block_nummber {
+                if value.1.submitted_height + T::RequestBlockNummber::get() <= block_nummber {
                     T::IdentityTrait::remove_identity(value.0, IdentityType::EResident);
                     <EresidentRequests<T>>::remove(value.0);
                     <SomeKycRequests<T>>::remove(value.1.account);

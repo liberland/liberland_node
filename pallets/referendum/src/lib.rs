@@ -30,9 +30,11 @@ pub mod pallet {
     pub trait Config:
         frame_system::Config + pallet_voting::Config + pallet_identity::Config
     {
-        const PETITION_DURATION: Self::BlockNumber;
+        #[pallet::constant]
+        type PetitionDuration: Get<Self::BlockNumber>;
 
-        const REFERENDUM_DURATION: Self::BlockNumber;
+        #[pallet::constant]
+        type ReferendumDuration: Get<Self::BlockNumber>;
 
         // 50%
         const REFERENDUM_ACCEPTANCE_PERCENTAGE: f64 = 0.5;
@@ -104,7 +106,7 @@ pub mod pallet {
 
             let petition_hash = T::Hashing::hash(&petition.data[..]);
 
-            T::VotingTrait::create_voting(petition_hash, T::PETITION_DURATION)?;
+            T::VotingTrait::create_voting(petition_hash, T::PetitionDuration::get())?;
             <SomeActivePetitions<T>>::insert(petition_hash, petition);
 
             Ok(().into())
@@ -168,7 +170,7 @@ pub mod pallet {
                         * T::PETITION_ACCEPTANCE_PERCENTAGE) as u64
                 {
                     <SomeActiveReferendums<T>>::insert(subject, petition);
-                    T::VotingTrait::create_voting(subject, T::REFERENDUM_DURATION).unwrap();
+                    T::VotingTrait::create_voting(subject, T::ReferendumDuration::get()).unwrap();
                 }
                 <SomeVotedCitizens<T>>::remove(subject);
                 <SomeActivePetitions<T>>::remove(subject);

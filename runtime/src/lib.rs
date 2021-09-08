@@ -299,11 +299,15 @@ impl pallet_sudo::Config for Runtime {
 
 /// Configure the pallet-identity in pallets/identity.
 impl pallet_identity::Config for Runtime {}
+
+parameter_types! {
+    // 72 hours
+    pub const RequestBlockNummber: u32 = 72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+}
 /// Configure the pallet-kyc in pallets/kyc.
 impl pallet_min_interior::Config for Runtime {
     // 72 hours
-    const REQUEST_BLOCK_NUMMBER: BlockNumber =
-        (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    type RequestBlockNummber = RequestBlockNummber;
     type IdentityTrait = IdentityPallet;
 }
 /// Configure the pallet-voting in pallets/voting.
@@ -312,14 +316,18 @@ impl pallet_voting::Config for Runtime {
     type FinalizeAltVotingDispatch = ();
     type FinalizeAltVotingListDispatch = AssemblyPallet;
 }
+parameter_types! {
+    // 72 hours
+    pub const PetitionDuration: u32 = 72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+    // 72 hours
+    pub const ReferendumDuration: u32 = 72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+}
 /// Configure the pallet-referendum in pallets/referendum.
 impl pallet_referendum::Config for Runtime {
     // 72 hours
-    const PETITION_DURATION: BlockNumber =
-        (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    type PetitionDuration = PetitionDuration;
     // 72 hours
-    const REFERENDUM_DURATION: BlockNumber =
-        (72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber);
+    type ReferendumDuration = ReferendumDuration;
     type IdentityTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
 }

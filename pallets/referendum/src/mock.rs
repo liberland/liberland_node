@@ -55,9 +55,13 @@ impl system::Config for Test {
     type OnSetCode = ();
 }
 
+parameter_types! {
+    pub const PetitionDuration: u64 = 10;
+    pub const ReferendumDuration: u64 = 20;
+}
 impl pallet_referendum::Config for Test {
-    const PETITION_DURATION: Self::BlockNumber = 10;
-    const REFERENDUM_DURATION: Self::BlockNumber = 20;
+    type PetitionDuration = PetitionDuration;
+    type ReferendumDuration = ReferendumDuration;
     type IdentityTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
 }

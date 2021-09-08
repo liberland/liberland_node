@@ -78,7 +78,7 @@ fn basic_referendum_test() {
 
         assert_ok!(ReferendumPallet::vote(account1.clone(), sug_hash));
         assert_ok!(ReferendumPallet::vote(account2.clone(), sug_hash));
-        VotingPallet::on_finalize(Test::PETITION_DURATION);
+        VotingPallet::on_finalize(PetitionDuration::get());
 
         assert_eq!(ReferendumPallet::get_active_petitions().len(), 0);
         assert_eq!(ReferendumPallet::get_active_referendums().len(), 1);
@@ -91,7 +91,7 @@ fn basic_referendum_test() {
         assert_ok!(ReferendumPallet::vote(account5.clone(), sug_hash));
         assert_ok!(ReferendumPallet::vote(account6.clone(), sug_hash));
 
-        VotingPallet::on_finalize(Test::REFERENDUM_DURATION);
+        VotingPallet::on_finalize(ReferendumDuration::get());
 
         assert_eq!(ReferendumPallet::get_active_petitions().len(), 0);
         assert_eq!(ReferendumPallet::get_active_referendums().len(), 0);
