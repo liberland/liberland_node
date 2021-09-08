@@ -39,6 +39,7 @@ pub mod pallet {
         #[pallet::constant]
         type AssemblyVotingHash: Get<Self::Hash>;
 
+        #[pallet::constant]
         type WinnersAmount: Get<u32>;
 
         type IdentTrait: IdentityTrait<Self>;
