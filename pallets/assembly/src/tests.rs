@@ -177,6 +177,44 @@ fn basic_assembly_test() {
                 .cloned()
                 .collect()
         );
+
+        AssemblyPallet::on_initialize(10 + 210);
+
+        assert_eq!(
+            IdentityPallet::identities([1_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([2_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([3_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+        VotingPallet::on_finalize(10 + 210 + 1);
+
+        assert_eq!(
+            IdentityPallet::identities([1_u8; 32]),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([2_u8; 32]),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([3_u8; 32]),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
     });
 }
 

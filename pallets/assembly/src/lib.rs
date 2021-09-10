@@ -239,6 +239,12 @@ pub mod pallet {
                 Err(_) => Err(<Error<T>>::VotingNotFound),
             }
         }
+
+        fn vec_u8_to_pasport_id(id: &[u8]) -> PassportId {
+            let mut id_slice: [u8; 32] = [Default::default(); 32];
+            id_slice[..id.len()].copy_from_slice(id);
+            id_slice
+        }
     }
 
     impl<T: Config> pallet_voting::finalize_voiting_trait::FinalizeAltVotingListDispatchTrait<T>
@@ -249,11 +255,22 @@ pub mod pallet {
             _voting_settings: pallet_voting::AltVotingListSettings<T::BlockNumber>,
             winners: BTreeMap<Candidate, u64>,
         ) {
+            <CurrentMinistersList<T>>::get()
+                .iter()
+                .for_each(|assembly| {
+                    T::IdentTrait::remove_identity(
+                        Self::vec_u8_to_pasport_id(assembly.0),
+                        IdentityType::Assembly,
+                    );
+                });
+            <CurrentMinistersList<T>>::kill();
             <CurrentMinistersList<T>>::mutate(|e| {
                 for (id, power) in winners.iter() {
-                    let mut id_slice: [u8; 32] = [Default::default(); 32];
-                    id_slice[..id.len()].copy_from_slice(id);
-                    T::IdentTrait::push_identity(id_slice, IdentityType::Assembly).unwrap();
+                    T::IdentTrait::push_identity(
+                        Self::vec_u8_to_pasport_id(id),
+                        IdentityType::Assembly,
+                    )
+                    .unwrap();
                     e.insert(id.clone(), *power);
                 }
             });

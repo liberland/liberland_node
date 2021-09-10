@@ -244,7 +244,7 @@ pub mod pallet {
                                 ballot.content.front() == Some(min_voted_candidate)
                             })
                             .collect();
-                        buffer.iter().for_each(|(ballot, _)| {
+                        buffer.iter().for_each(|(ballot, power)| {
                             let mut ballot_tmp = ballot.content.clone();
                             ballot_tmp.pop_front();
                             if_chain! {
@@ -252,7 +252,7 @@ pub mod pallet {
                                 if *vout != removeble_key;
                                 if let Some(result) = candidate_list.get_mut(vout);
                                 then {
-                                    *result += 1;
+                                    *result += power;
                                 }
                             }
                         });
