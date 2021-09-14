@@ -102,6 +102,14 @@ pub mod pallet {
     #[pallet::getter(fn laws)]
     type Laws<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, LawState, OptionQuery>;
 
+    #[pallet::storage]
+    #[pallet::getter(fn liber_stake_amount)]
+    type LiberStakeAmount<T: Config> = StorageValue<_, u64, ValueQuery, DefaultLiberAmount>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn assemblys_stake_amount)]
+    type AssemblyStakeAmount<T: Config> = StorageValue<_, u64, ValueQuery, DefaultLiberAmount>;
+
     #[pallet::type_value]
     pub fn DefaultCandidates() -> BTreeSet<Candidate> {
         Default::default()
@@ -119,6 +127,10 @@ pub mod pallet {
 
     #[pallet::type_value]
     pub fn DefaultMinisters() -> BTreeMap<Candidate, u64> {
+        Default::default()
+    }
+    #[pallet::type_value]
+    pub fn DefaultLiberAmount() -> u64 {
         Default::default()
     }
 
@@ -219,7 +231,6 @@ pub mod pallet {
                 T::WinnersAmount::get(),
             )
             .unwrap();
-            <CandidatesList<T>>::kill();
         }
 
         pub fn add_candidate_internal(id: PassportId) -> Result<(), Error<T>> {
@@ -245,6 +256,22 @@ pub mod pallet {
             id_slice[..id.len()].copy_from_slice(id);
             id_slice
         }
+
+        fn set_liber_stake_amount() {
+            let mut power: pallet_staking::BalanceOf<T> = Zero::zero();
+            pallet_identity::Identities::<T>::iter().for_each(|user| {
+                if user.1.contains(&IdentityType::Citizen) {
+                    pallet_identity::Pallet::<T>::account_ids(user.0)
+                        .iter()
+                        .for_each(|account_id| {
+                            power += T::StakingTrait::get_liber_amount(account_id.clone());
+                        });
+                }
+            });
+            <LiberStakeAmount<T>>::mutate(|value| {
+                *value = TryInto::<u64>::try_into(power).ok().unwrap();
+            });
+        }
     }
 
     impl<T: Config> pallet_voting::finalize_voiting_trait::FinalizeAltVotingListDispatchTrait<T>
@@ -263,7 +290,9 @@ pub mod pallet {
                         IdentityType::Assembly,
                     );
                 });
+            <AssemblyStakeAmount<T>>::kill();
             <CurrentMinistersList<T>>::kill();
+            <CandidatesList<T>>::kill();
             <CurrentMinistersList<T>>::mutate(|e| {
                 for (id, power) in winners.iter() {
                     T::IdentTrait::push_identity(
@@ -275,6 +304,8 @@ pub mod pallet {
                 }
             });
             <VotingState<T>>::mutate(|state| *state = false);
+            <LiberStakeAmount<T>>::kill();
+            Self::set_liber_stake_amount();
         }
     }
 
@@ -284,6 +315,7 @@ pub mod pallet {
             voting_setting: pallet_voting::VotingSettings<T::BlockNumber>,
         ) {
             let total_power: u64 = <CurrentMinistersList<T>>::get().iter().map(|e| e.1).sum();
+            <AssemblyStakeAmount<T>>::mutate(|value| *value = total_power);
             if ((voting_setting.result as f64 / total_power as f64) * 100.0) > 50.0 {
                 <Laws<T>>::insert(subject, LawState::Approved);
             } else {

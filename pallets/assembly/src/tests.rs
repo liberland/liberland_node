@@ -155,6 +155,7 @@ fn basic_assembly_test() {
         winners.insert([1_u8; 32].to_vec(), 3);
         winners.insert([2_u8; 32].to_vec(), 1);
         winners.insert([3_u8; 32].to_vec(), 1);
+        assert_eq!(AssemblyPallet::liber_stake_amount(), 6);
         assert_eq!(AssemblyPallet::ministers_list(), winners);
         assert_eq!(
             IdentityPallet::identities([1_u8; 32]),
