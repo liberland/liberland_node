@@ -100,7 +100,7 @@ pub mod pallet {
 
     #[pallet::storage]
     #[pallet::getter(fn laws)]
-    type Laws<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, LawState, OptionQuery>;
+    type Laws<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, Law, OptionQuery>;
 
     #[pallet::storage]
     #[pallet::getter(fn liber_stake_amount)]
@@ -168,7 +168,6 @@ pub mod pallet {
         #[pallet::weight(1)]
         pub(super) fn add_candidate(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
-            // Add check that candidate is citizen
             let citizen = pallet_identity::Pallet::<T>::passport_id(sender)
                 .ok_or(<Error<T>>::AccountCannotBeAddedAsCandiate)?;
             Self::add_candidate_internal(citizen)?;
@@ -179,6 +178,7 @@ pub mod pallet {
         pub(super) fn propose_law(
             origin: OriginFor<T>,
             law_hash: T::Hash,
+            law_type: LawType,
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
             ensure!(
@@ -186,7 +186,13 @@ pub mod pallet {
                 <Error<T>>::AccountCannotBeAddedAsCandiate
             );
             T::VotingTrait::create_voting(law_hash, T::LawVotingDuration::get())?;
-            <Laws<T>>::insert(law_hash, LawState::InProgress);
+            <Laws<T>>::insert(
+                law_hash,
+                Law {
+                    state: LawState::InProgress,
+                    law_type,
+                },
+            );
             Ok(().into())
         }
 
@@ -316,10 +322,47 @@ pub mod pallet {
         ) {
             let total_power: u64 = <CurrentMinistersList<T>>::get().iter().map(|e| e.1).sum();
             <AssemblyStakeAmount<T>>::mutate(|value| *value = total_power);
-            if ((voting_setting.result as f64 / total_power as f64) * 100.0) > 50.0 {
-                <Laws<T>>::insert(subject, LawState::Approved);
-            } else {
-                <Laws<T>>::insert(subject, LawState::Declined);
+            if let Some(law) = <Laws<T>>::get(subject) {
+                match law.law_type {
+                    LawType::ConstitutionalChange => {
+                        if ((voting_setting.result as f64 / total_power as f64) * 100.0) > 66.6 {
+                            <Laws<T>>::insert(
+                                subject,
+                                Law {
+                                    state: LawState::Approved,
+                                    law_type: law.law_type,
+                                },
+                            );
+                        } else {
+                            <Laws<T>>::insert(
+                                subject,
+                                Law {
+                                    state: LawState::Declined,
+                                    law_type: law.law_type,
+                                },
+                            );
+                        }
+                    }
+                    _ => {
+                        if ((voting_setting.result as f64 / total_power as f64) * 100.0) > 50.0 {
+                            <Laws<T>>::insert(
+                                subject,
+                                Law {
+                                    state: LawState::Approved,
+                                    law_type: law.law_type,
+                                },
+                            );
+                        } else {
+                            <Laws<T>>::insert(
+                                subject,
+                                Law {
+                                    state: LawState::Declined,
+                                    law_type: law.law_type,
+                                },
+                            );
+                        }
+                    }
+                }
             }
         }
     }
@@ -331,4 +374,18 @@ pub enum LawState {
     Approved,
     InProgress,
     Declined,
+}
+
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Encode, Decode, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum LawType {
+    ConstitutionalChange,
+    Edict,
+}
+
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Encode, Decode, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct Law {
+    pub state: LawState,
+    pub law_type: LawType,
 }
