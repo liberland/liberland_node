@@ -155,7 +155,6 @@ fn basic_assembly_test() {
         winners.insert([1_u8; 32].to_vec(), 3);
         winners.insert([2_u8; 32].to_vec(), 1);
         winners.insert([3_u8; 32].to_vec(), 1);
-        assert_eq!(AssemblyPallet::liber_stake_amount(), 6);
         assert_eq!(AssemblyPallet::ministers_list(), winners);
         assert_eq!(
             IdentityPallet::identities([1_u8; 32]),
@@ -252,7 +251,10 @@ fn assembly_errorss_test() {
         AssemblyPallet::on_initialize(10 + 100);
 
         assert_ok!(AssemblyPallet::vote(account2.clone(), ballot_1.clone()));
-
+        assert_err!(
+            AssemblyPallet::add_candidate(account2.clone()),
+            <Error<Test>>::VotingIsAlreadyInProgress
+        );
         assert_err!(
             AssemblyPallet::vote(account2.clone(), ballot_1.clone()),
             <Error<Test>>::AlreadyVoted

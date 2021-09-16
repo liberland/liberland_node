@@ -60,6 +60,7 @@ pub mod pallet {
         AccountCannotVote,
         IsNotActiveVoting,
         AlreadyVoted,
+        VotingIsAlreadyInProgress,
     }
 
     #[pallet::hooks]
@@ -101,10 +102,6 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn laws)]
     type Laws<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, Law, OptionQuery>;
-
-    #[pallet::storage]
-    #[pallet::getter(fn liber_stake_amount)]
-    type LiberStakeAmount<T: Config> = StorageValue<_, u64, ValueQuery, DefaultLiberAmount>;
 
     #[pallet::storage]
     #[pallet::getter(fn assemblys_stake_amount)]
@@ -168,6 +165,10 @@ pub mod pallet {
         #[pallet::weight(1)]
         pub(super) fn add_candidate(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
+            ensure!(
+                !<VotingState<T>>::get(),
+                <Error<T>>::VotingIsAlreadyInProgress
+            );
             let citizen = pallet_identity::Pallet::<T>::passport_id(sender)
                 .ok_or(<Error<T>>::AccountCannotBeAddedAsCandiate)?;
             Self::add_candidate_internal(citizen)?;
@@ -262,22 +263,6 @@ pub mod pallet {
             id_slice[..id.len()].copy_from_slice(id);
             id_slice
         }
-
-        fn set_liber_stake_amount() {
-            let mut power: pallet_staking::BalanceOf<T> = Zero::zero();
-            pallet_identity::Identities::<T>::iter().for_each(|user| {
-                if user.1.contains(&IdentityType::Citizen) {
-                    pallet_identity::Pallet::<T>::account_ids(user.0)
-                        .iter()
-                        .for_each(|account_id| {
-                            power += T::StakingTrait::get_liber_amount(account_id.clone());
-                        });
-                }
-            });
-            <LiberStakeAmount<T>>::mutate(|value| {
-                *value = TryInto::<u64>::try_into(power).ok().unwrap();
-            });
-        }
     }
 
     impl<T: Config> pallet_voting::finalize_voiting_trait::FinalizeAltVotingListDispatchTrait<T>
@@ -310,8 +295,6 @@ pub mod pallet {
                 }
             });
             <VotingState<T>>::mutate(|state| *state = false);
-            <LiberStakeAmount<T>>::kill();
-            Self::set_liber_stake_amount();
         }
     }
 
