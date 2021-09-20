@@ -307,7 +307,7 @@ pub mod pallet {
             <AssemblyStakeAmount<T>>::mutate(|value| *value = total_power);
             if let Some(law) = <Laws<T>>::get(subject) {
                 match law.law_type {
-                    LawType::ConstitutionalChange => {
+                    LawType::ConstitutionalChange | LawType::Legislation => {
                         if ((voting_setting.result as f64 / total_power as f64) * 100.0) > 66.6 {
                             <Laws<T>>::insert(
                                 subject,
@@ -363,7 +363,8 @@ pub enum LawState {
 #[derive(Clone, Copy, Encode, Decode, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum LawType {
     ConstitutionalChange,
-    Edict,
+    Legislation,
+    Decision,
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]

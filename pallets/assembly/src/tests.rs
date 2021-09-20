@@ -432,7 +432,7 @@ fn basic_low_voting_test() {
         let law_hash_2 = Hashing::hash(&[2; 32]);
         AssemblyPallet::propose_law(account1.clone(), law_hash_1, LawType::ConstitutionalChange)
             .unwrap();
-        AssemblyPallet::propose_law(account2.clone(), law_hash_2, LawType::Edict).unwrap();
+        AssemblyPallet::propose_law(account2.clone(), law_hash_2, LawType::Legislation).unwrap();
 
         AssemblyPallet::vote_to_law(account1.clone(), law_hash_1).unwrap();
         AssemblyPallet::vote_to_law(account2.clone(), law_hash_1).unwrap();
@@ -448,7 +448,7 @@ fn basic_low_voting_test() {
             AssemblyPallet::laws(law_hash_2).unwrap(),
             Law {
                 state: LawState::InProgress,
-                law_type: LawType::Edict
+                law_type: LawType::Legislation
             }
         );
         VotingPallet::on_finalize(10 + 100 + 1);
@@ -464,7 +464,7 @@ fn basic_low_voting_test() {
             AssemblyPallet::laws(law_hash_2).unwrap(),
             Law {
                 state: LawState::Declined,
-                law_type: LawType::Edict
+                law_type: LawType::Legislation
             }
         );
     });
