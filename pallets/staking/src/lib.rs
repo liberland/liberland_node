@@ -3230,10 +3230,12 @@ pub trait StakingTrait<T: Config> {
 }
 
 impl<T: Config> StakingTrait<T> for Pallet<T> {
-    fn get_liber_amount(acount_id: T::AccountId) -> BalanceOf<T> {
-        if let Some(ledger) = Self::ledger(acount_id) {
-            let liber_amount = ledger.liber_amount;
-            return liber_amount;
+    fn get_liber_amount(account_id: T::AccountId) -> BalanceOf<T> {
+        if let Some(controller) = <Bonded<T>>::get(account_id) {
+            if let Some(ledger) = Self::ledger(controller) {
+                let liber_amount = ledger.liber_amount;
+                return liber_amount;
+            }
         }
         Zero::zero()
     }
