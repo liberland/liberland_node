@@ -56,6 +56,7 @@ pub mod pallet {
     #[pallet::error]
     pub enum Error<T> {
         AccountCannotBeAddedAsCandiate,
+        AccountCannotProposeLaw,
         VotingNotFound,
         AccountCannotVote,
         IsNotActiveVoting,
@@ -184,7 +185,7 @@ pub mod pallet {
             let sender = ensure_signed(origin)?;
             ensure!(
                 T::IdentTrait::check_account_indetity(sender, IdentityType::Assembly),
-                <Error<T>>::AccountCannotBeAddedAsCandiate
+                <Error<T>>::AccountCannotProposeLaw
             );
             T::VotingTrait::create_voting(law_hash, T::LawVotingDuration::get())?;
             <Laws<T>>::insert(
@@ -205,7 +206,7 @@ pub mod pallet {
             let sender = ensure_signed(origin)?;
             ensure!(
                 T::IdentTrait::check_account_indetity(sender.clone(), IdentityType::Assembly),
-                <Error<T>>::AccountCannotBeAddedAsCandiate
+                <Error<T>>::AccountCannotVote
             );
 
             //this unwrap() is correct
