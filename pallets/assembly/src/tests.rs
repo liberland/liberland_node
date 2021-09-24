@@ -132,11 +132,11 @@ fn basic_assembly_test() {
         let voutes = VecDeque::from(v);
         let ballot_5 = pallet_voting::AltVote::new(voutes);
 
-        AssemblyPallet::vote(account6, ballot_1).unwrap();
-        AssemblyPallet::vote(account7, ballot_2).unwrap();
-        AssemblyPallet::vote(account8, ballot_3).unwrap();
-        AssemblyPallet::vote(account9, ballot_4).unwrap();
-        AssemblyPallet::vote(account10, ballot_5).unwrap();
+        AssemblyPallet::vote(account6.clone(), ballot_1.clone()).unwrap();
+        AssemblyPallet::vote(account7.clone(), ballot_2.clone()).unwrap();
+        AssemblyPallet::vote(account8.clone(), ballot_3.clone()).unwrap();
+        AssemblyPallet::vote(account9.clone(), ballot_4.clone()).unwrap();
+        AssemblyPallet::vote(account10.clone(), ballot_5.clone()).unwrap();
         assert_eq!(
             IdentityPallet::identities([1_u8; 32]),
             [IdentityType::Citizen].iter().cloned().collect()
@@ -214,6 +214,105 @@ fn basic_assembly_test() {
         assert_eq!(
             IdentityPallet::identities([3_u8; 32]),
             [IdentityType::Citizen].iter().cloned().collect()
+        );
+
+        // Testing multiple votes
+        AssemblyPallet::add_candidate_internal(id1).unwrap();
+        AssemblyPallet::add_candidate_internal(id2).unwrap();
+        AssemblyPallet::add_candidate_internal(id3).unwrap();
+        AssemblyPallet::add_candidate_internal(id4).unwrap();
+        AssemblyPallet::add_candidate_internal(id5).unwrap();
+
+        AssemblyPallet::on_initialize(10 + 320);
+
+        AssemblyPallet::vote(account6.clone(), ballot_1.clone()).unwrap();
+        AssemblyPallet::vote(account7.clone(), ballot_2.clone()).unwrap();
+        AssemblyPallet::vote(account8.clone(), ballot_3.clone()).unwrap();
+        AssemblyPallet::vote(account9.clone(), ballot_4.clone()).unwrap();
+        AssemblyPallet::vote(account10.clone(), ballot_5.clone()).unwrap();
+
+        assert_eq!(
+            IdentityPallet::identities([1_u8; 32]),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([2_u8; 32]),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([3_u8; 32]),
+            [IdentityType::Citizen].iter().cloned().collect()
+        );
+        VotingPallet::on_finalize(10 + 320 + 1);
+        assert_eq!(AssemblyPallet::voting_state(), false);
+        let mut winners = BTreeMap::new();
+        winners.insert([1_u8; 32].to_vec(), 3);
+        winners.insert([2_u8; 32].to_vec(), 1);
+        winners.insert([3_u8; 32].to_vec(), 1);
+        assert_eq!(AssemblyPallet::ministers_list(), winners);
+        assert_eq!(
+            IdentityPallet::identities([1_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([2_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([3_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+
+        AssemblyPallet::add_candidate_internal(id1).unwrap();
+        AssemblyPallet::add_candidate_internal(id2).unwrap();
+        AssemblyPallet::add_candidate_internal(id3).unwrap();
+        AssemblyPallet::add_candidate_internal(id4).unwrap();
+        AssemblyPallet::add_candidate_internal(id5).unwrap();
+
+        AssemblyPallet::on_initialize(10 + 430);
+
+        AssemblyPallet::vote(account6.clone(), ballot_1.clone()).unwrap();
+        AssemblyPallet::vote(account7.clone(), ballot_2.clone()).unwrap();
+        AssemblyPallet::vote(account8.clone(), ballot_3.clone()).unwrap();
+        AssemblyPallet::vote(account9.clone(), ballot_4.clone()).unwrap();
+        AssemblyPallet::vote(account10.clone(), ballot_5.clone()).unwrap();
+
+        VotingPallet::on_finalize(10 + 430 + 1);
+        assert_eq!(AssemblyPallet::voting_state(), false);
+        let mut winners = BTreeMap::new();
+        winners.insert([1_u8; 32].to_vec(), 3);
+        winners.insert([2_u8; 32].to_vec(), 1);
+        winners.insert([3_u8; 32].to_vec(), 1);
+        assert_eq!(AssemblyPallet::ministers_list(), winners);
+        assert_eq!(
+            IdentityPallet::identities([1_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([2_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
+        );
+        assert_eq!(
+            IdentityPallet::identities([3_u8; 32]),
+            [IdentityType::Citizen, IdentityType::Assembly]
+                .iter()
+                .cloned()
+                .collect()
         );
     });
 }

@@ -89,7 +89,7 @@ pub mod pallet {
         StorageValue<_, BTreeMap<Candidate, u64>, ValueQuery, DefaultMinisters>;
 
     #[pallet::storage]
-    type SomeVotedCitizens<T: Config> =
+    type VotedCitizens<T: Config> =
         StorageValue<_, BTreeSet<PassportId>, ValueQuery, DefaultVotedCitizens>;
 
     #[pallet::storage]
@@ -144,7 +144,7 @@ pub mod pallet {
             //this unwrap() is correct
             let citizen = pallet_identity::Pallet::<T>::passport_id(sender).unwrap();
             ensure!(
-                !<SomeVotedCitizens<T>>::get().contains(&citizen),
+                !<VotedCitizens<T>>::get().contains(&citizen),
                 <Error<T>>::AlreadyVoted
             );
             let mut power: pallet_staking::BalanceOf<T> = Zero::zero();
@@ -156,7 +156,7 @@ pub mod pallet {
 
             let power = TryInto::<u64>::try_into(power).ok().unwrap();
             Self::alt_vote(T::AssemblyVotingHash::get(), ballot, power)?;
-            <SomeVotedCitizens<T>>::mutate(|voted_citizens| {
+            <VotedCitizens<T>>::mutate(|voted_citizens| {
                 voted_citizens.insert(citizen);
             });
 
@@ -285,6 +285,7 @@ pub mod pallet {
             <AssemblyStakeAmount<T>>::kill();
             <CurrentMinistersList<T>>::kill();
             <CandidatesList<T>>::kill();
+            <VotedCitizens<T>>::kill();
             <CurrentMinistersList<T>>::mutate(|e| {
                 for (id, power) in winners.iter() {
                     T::IdentTrait::push_identity(
