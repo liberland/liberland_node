@@ -93,8 +93,14 @@ pub mod pallet {
         StorageValue<_, BTreeSet<PassportId>, ValueQuery, DefaultVotedCitizens>;
 
     #[pallet::storage]
-    type VotedAssemblies<T: Config> =
-        StorageValue<_, BTreeSet<PassportId>, ValueQuery, DefaultVotedCitizens>;
+    type VotedAssemblies<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        T::Hash,
+        BTreeSet<VotedAssembly>,
+        ValueQuery,
+        DefaultVotedAssemblyes,
+    >;
 
     #[pallet::storage]
     #[pallet::getter(fn voting_state)]
@@ -116,6 +122,11 @@ pub mod pallet {
     #[pallet::type_value]
     pub fn DefaultVotedCitizens() -> BTreeSet<PassportId> {
         Default::default()
+    }
+
+    #[pallet::type_value]
+    pub fn DefaultVotedAssemblyes() -> BTreeSet<VotedAssembly> {
+        BTreeSet::new()
     }
 
     #[pallet::type_value]
@@ -202,6 +213,7 @@ pub mod pallet {
         pub(super) fn vote_to_law(
             origin: OriginFor<T>,
             law_hash: T::Hash,
+            estimate: Decision,
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
             ensure!(
@@ -210,19 +222,23 @@ pub mod pallet {
             );
 
             //this unwrap() is correct
-            let assembly = pallet_identity::Pallet::<T>::passport_id(sender).unwrap();
+            let pasport_id = pallet_identity::Pallet::<T>::passport_id(sender).unwrap();
+            let assembly = VotedAssembly {
+                id: pasport_id,
+                estimate,
+            };
             ensure!(
-                !<VotedAssemblies<T>>::get().contains(&assembly),
+                !<VotedAssemblies<T>>::get(law_hash).contains(&assembly),
                 <Error<T>>::AlreadyVoted
             );
 
             //this unwrap() is correct
             let power = *<CurrentMinistersList<T>>::get()
-                .get(&assembly.to_vec())
+                .get(&assembly.id.to_vec())
                 .unwrap();
 
             T::VotingTrait::vote(law_hash, power)?;
-            <VotedAssemblies<T>>::mutate(|voted_assemblyes| {
+            <VotedAssemblies<T>>::mutate(law_hash, |voted_assemblyes| {
                 voted_assemblyes.insert(assembly);
             });
             Ok(().into())
@@ -374,4 +390,18 @@ pub enum LawType {
 pub struct Law {
     pub state: LawState,
     pub law_type: LawType,
+}
+
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Encode, Decode, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum Decision {
+    Accept,
+    Decline,
+}
+
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, Encode, Decode, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct VotedAssembly {
+    pub id: PassportId,
+    pub estimate: Decision,
 }

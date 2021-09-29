@@ -529,13 +529,15 @@ fn basic_low_voting_test() {
         type Hashing = <Test as frame_system::Config>::Hashing;
         let law_hash_1 = Hashing::hash(&[1; 32]);
         let law_hash_2 = Hashing::hash(&[2; 32]);
+        let law_hash_3 = Hashing::hash(&[3; 32]);
         AssemblyPallet::propose_law(account1.clone(), law_hash_1, LawType::ConstitutionalChange)
             .unwrap();
         AssemblyPallet::propose_law(account2.clone(), law_hash_2, LawType::Legislation).unwrap();
+        AssemblyPallet::propose_law(account2.clone(), law_hash_3, LawType::Legislation).unwrap();
 
-        AssemblyPallet::vote_to_law(account1.clone(), law_hash_1).unwrap();
-        AssemblyPallet::vote_to_law(account2.clone(), law_hash_1).unwrap();
-        AssemblyPallet::vote_to_law(account3.clone(), law_hash_1).unwrap();
+        AssemblyPallet::vote_to_law(account1.clone(), law_hash_1, Decision::Accept).unwrap();
+        AssemblyPallet::vote_to_law(account2.clone(), law_hash_1, Decision::Accept).unwrap();
+        AssemblyPallet::vote_to_law(account3.clone(), law_hash_1, Decision::Accept).unwrap();
         assert_eq!(
             AssemblyPallet::laws(law_hash_1).unwrap(),
             Law {
@@ -543,8 +545,21 @@ fn basic_low_voting_test() {
                 law_type: LawType::ConstitutionalChange
             }
         );
+        assert_err!(
+            AssemblyPallet::vote_to_law(account1.clone(), law_hash_1, Decision::Accept),
+            <Error<Test>>::AlreadyVoted
+        );
+        AssemblyPallet::vote_to_law(account1.clone(), law_hash_3, Decision::Accept).unwrap();
+
         assert_eq!(
             AssemblyPallet::laws(law_hash_2).unwrap(),
+            Law {
+                state: LawState::InProgress,
+                law_type: LawType::Legislation
+            }
+        );
+        assert_eq!(
+            AssemblyPallet::laws(law_hash_3).unwrap(),
             Law {
                 state: LawState::InProgress,
                 law_type: LawType::Legislation
@@ -557,6 +572,13 @@ fn basic_low_voting_test() {
             Law {
                 state: LawState::Approved,
                 law_type: LawType::ConstitutionalChange
+            }
+        );
+        assert_eq!(
+            AssemblyPallet::laws(law_hash_3).unwrap(),
+            Law {
+                state: LawState::Declined,
+                law_type: LawType::Legislation
             }
         );
         assert_eq!(
