@@ -341,7 +341,7 @@ parameter_types! {
     // 2 minutes
     pub const AssemblyVotingDuration: u32 = 2 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
     // 1 minutes
-    pub const LawVotingDuration: u32 = 1 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+    pub const LawVotingDuration: u32 = 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
     pub const AssemblyVotingHash: H256 = sp_core::H256::zero();
     pub const WinnersAmount: u32 = 3;
 
