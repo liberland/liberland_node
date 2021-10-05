@@ -336,10 +336,10 @@ impl pallet_referendum::Config for Runtime {
 impl pallet_documentation::Config for Runtime {}
 
 parameter_types! {
-    // 3 minutes
-    pub const AssemblyElectionPeriod: u32 = 3 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+    // 10 minutes
+    pub const AssemblyElectionPeriod: u32 = 10 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
     // 2 minutes
-    pub const AssemblyVotingDuration: u32 = 2 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+    pub const AssemblyVotingDuration: u32 = 3 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
     // 1 minutes
     pub const LawVotingDuration: u32 = 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
     pub const AssemblyVotingHash: H256 = sp_core::H256::zero();
