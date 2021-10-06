@@ -78,18 +78,17 @@ pub mod pallet {
         OptionQuery,
     >;
     #[pallet::storage]
-    #[pallet::getter(fn ballots_list)]
     type BallotsStorage<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
         T::Hash,
-        Vec<(AltVote, u64)>,
+        BTreeMap<T::AccountId, (AltVote, u64)>,
         ValueQuery,
-        DefaultBallotList,
+        DefaultBallot<T>,
     >;
 
     #[pallet::type_value]
-    pub fn DefaultBallotList() -> Vec<(AltVote, u64)> {
+    pub fn DefaultBallot<T: Config>() -> BTreeMap<T::AccountId, (AltVote, u64)> {
         Default::default()
     }
 
@@ -103,8 +102,8 @@ pub mod pallet {
                 if (voting_settings.voting_duration + voting_settings.submitted_height)
                     <= block_number
                 {
-                    <ActiveVotings<T>>::remove(subject);
                     <T::FinalizeVotingDispatch>::finalize_voting(subject, voting_settings);
+                    <ActiveVotings<T>>::remove(subject);
                 }
             }
         }
@@ -113,28 +112,33 @@ pub mod pallet {
                 if (alt_voting_settings.voting_duration + alt_voting_settings.submitted_height)
                     <= block_number
                 {
-                    let winner = Self::calculate_alt_vote_winner(subject).unwrap();
-                    <T::FinalizeAltVotingDispatch>::finalize_voting(
-                        subject,
-                        alt_voting_settings,
-                        winner,
-                    );
+                    if let Ok(winner) = Self::calculate_alt_vote_winner(subject) {
+                        <T::FinalizeAltVotingDispatch>::finalize_voting(
+                            subject,
+                            alt_voting_settings,
+                            winner,
+                        );
+                    }
 
                     <BallotsStorage<T>>::remove(subject);
                     <ActiveAltVoitings<T>>::remove(subject);
                 }
             });
         }
+        #[allow(clippy::type_complexity)]
         fn finalize_list_alt_votings(block_number: BlockNumberFor<T>) {
             <ActiveAltListVoitings<T>>::iter().for_each(|(subject, alt_voting_settings)| {
                 if (alt_voting_settings.voting_duration + alt_voting_settings.submitted_height)
                     <= block_number
                 {
                     let winners = Self::calculate_alt_vote_winners_list(subject).unwrap();
+                    let ballots_storage: BTreeMap<T::Hash, BTreeMap<T::AccountId, (AltVote, u64)>> =
+                        <BallotsStorage<T>>::iter().collect();
                     <T::FinalizeAltVotingListDispatch>::finalize_voting(
                         subject,
                         alt_voting_settings,
                         winners,
+                        ballots_storage,
                     );
                     <BallotsStorage<T>>::remove(subject);
                     <ActiveAltListVoitings<T>>::remove(subject);
@@ -144,19 +148,18 @@ pub mod pallet {
         pub fn calculate_alt_vote_winner(subject: T::Hash) -> Result<Candidate, Error<T>> {
             if let Some(settings) = <ActiveAltVoitings<T>>::get(subject) {
                 let ballots_list = <BallotsStorage<T>>::get(subject);
-
                 let mut candidate_list: BTreeMap<Candidate, u64> = settings
                     .candidates
                     .iter()
                     .map(|candidate| (candidate.clone(), 0))
                     .collect();
 
-                ballots_list.iter().for_each(|(ballot, power)| {
+                ballots_list.iter().for_each(|(_, ballot)| {
                     if_chain! {
-                        if let Some(vout) = ballot.content.front();
+                        if let Some(vout) = ballot.0.content.front();
                         if let Some(result) = candidate_list.get_mut(vout);
                         then {
-                            *result += power;
+                            *result += ballot.1;
                         }
                     }
                 });
@@ -179,19 +182,19 @@ pub mod pallet {
                         removeble_key = min_voted_candidate.clone();
                         let buffer: Vec<_> = ballots_list
                             .iter()
-                            .filter(|(ballot, _)| {
-                                ballot.content.front() == Some(min_voted_candidate)
+                            .filter(|(_, ballot)| {
+                                ballot.0.content.front() == Some(min_voted_candidate)
                             })
                             .collect();
-                        buffer.iter().for_each(|(ballot, power)| {
-                            let mut ballot_tmp = ballot.content.clone();
+                        buffer.iter().for_each(|(_, ballot)| {
+                            let mut ballot_tmp = ballot.0.content.clone();
                             ballot_tmp.pop_front();
                             if_chain! {
                                 if let Some(vout) = ballot_tmp.front();
                                 if *vout != removeble_key;
                                 if let Some(result) = candidate_list.get_mut(vout);
                                 then {
-                                    *result += power;
+                                    *result += ballot.1;
                                 }
                             }
                         });
@@ -215,19 +218,18 @@ pub mod pallet {
         ) -> Result<BTreeMap<Candidate, u64>, Error<T>> {
             if let Some(settings) = <ActiveAltListVoitings<T>>::get(subject) {
                 let ballots_list = <BallotsStorage<T>>::get(subject);
-
                 let mut candidate_list: BTreeMap<Candidate, u64> = settings
                     .candidates
                     .iter()
                     .map(|candidate| (candidate.clone(), 0))
                     .collect();
 
-                ballots_list.iter().for_each(|(ballot, power)| {
+                ballots_list.iter().for_each(|(_, ballot)| {
                     if_chain! {
-                        if let Some(vout) = ballot.content.front();
+                        if let Some(vout) = ballot.0.content.front();
                         if let Some(result) = candidate_list.get_mut(vout);
                         then {
-                            *result += power;
+                            *result += ballot.1;
                         }
                     }
                 });
@@ -240,19 +242,19 @@ pub mod pallet {
                         removeble_key = min_voted_candidate.clone();
                         let buffer: Vec<_> = ballots_list
                             .iter()
-                            .filter(|(ballot, _)| {
-                                ballot.content.front() == Some(min_voted_candidate)
+                            .filter(|(_, ballot)| {
+                                ballot.0.content.front() == Some(min_voted_candidate)
                             })
                             .collect();
-                        buffer.iter().for_each(|(ballot, power)| {
-                            let mut ballot_tmp = ballot.content.clone();
+                        buffer.iter().for_each(|(_, ballot)| {
+                            let mut ballot_tmp = ballot.0.content.clone();
                             ballot_tmp.pop_front();
                             if_chain! {
                                 if let Some(vout) = ballot_tmp.front();
                                 if *vout != removeble_key;
                                 if let Some(result) = candidate_list.get_mut(vout);
                                 then {
-                                    *result += power;
+                                    *result += ballot.1;
                                 }
                             }
                         });
@@ -344,11 +346,16 @@ pub mod pallet {
             }
         }
 
-        fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
+        fn alt_vote(
+            subject: T::Hash,
+            account_id: T::AccountId,
+            ballot: AltVote,
+            power: u64,
+        ) -> Result<(), Error<T>> {
             match <ActiveAltVoitings<T>>::get(subject) {
                 Some(_) => {
                     let mut ballots_list = <BallotsStorage<T>>::get(subject);
-                    ballots_list.push((ballot, power));
+                    ballots_list.insert(account_id, (ballot, power));
                     <BallotsStorage<T>>::insert(subject, ballots_list);
                     Ok(())
                 }
@@ -356,11 +363,16 @@ pub mod pallet {
             }
         }
 
-        fn alt_vote_list(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
+        fn alt_vote_list(
+            subject: T::Hash,
+            account_id: T::AccountId,
+            ballot: AltVote,
+            power: u64,
+        ) -> Result<(), Error<T>> {
             match <ActiveAltListVoitings<T>>::get(subject) {
                 Some(_) => {
                     let mut ballots_list = <BallotsStorage<T>>::get(subject);
-                    ballots_list.push((ballot, power));
+                    ballots_list.insert(account_id, (ballot, power));
                     <BallotsStorage<T>>::insert(subject, ballots_list);
                     Ok(())
                 }
@@ -388,9 +400,19 @@ pub trait VotingTrait<T: Config> {
 
     fn vote(subject: T::Hash, power: u64) -> Result<(), Error<T>>;
 
-    fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>>;
+    fn alt_vote(
+        subject: T::Hash,
+        account_id: T::AccountId,
+        ballot: AltVote,
+        power: u64,
+    ) -> Result<(), Error<T>>;
 
-    fn alt_vote_list(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>>;
+    fn alt_vote_list(
+        subject: T::Hash,
+        account_id: T::AccountId,
+        ballot: AltVote,
+        power: u64,
+    ) -> Result<(), Error<T>>;
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
@@ -421,7 +443,7 @@ pub struct AltVotingListSettings<BlockNumber> {
 pub type Candidate = Vec<u8>;
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug)]
+#[derive(Clone, Encode, Decode, Eq, PartialEq, Ord, PartialOrd, Debug, Default)]
 pub struct AltVote {
     pub content: VecDeque<Candidate>,
 }

@@ -162,31 +162,33 @@ pub mod pallet {
     }
 
     impl<T: Config> pallet_voting::FinalizeVotingDispatchTrait<T> for Pallet<T> {
-        fn finalize_voting(subject: T::Hash, voting_setting: VotingSettings<T::BlockNumber>) {
-            if let Some(petition) = <SomeActivePetitions<T>>::get(subject) {
-                // more than 10%
-                if voting_setting.result
-                    > ((pallet_identity::Pallet::<T>::citizens_amount() as f64)
-                        * T::PETITION_ACCEPTANCE_PERCENTAGE) as u64
-                {
-                    <SomeActiveReferendums<T>>::insert(subject, petition);
-                    T::VotingTrait::create_voting(subject, T::ReferendumDuration::get()).unwrap();
-                }
-                <SomeVotedCitizens<T>>::remove(subject);
-                <SomeActivePetitions<T>>::remove(subject);
-                return;
-            }
-            if let Some(referendum) = <SomeActiveReferendums<T>>::get(subject) {
-                // more than 50%
-                if voting_setting.result
-                    > ((pallet_identity::Pallet::<T>::citizens_amount() as f64)
-                        * T::REFERENDUM_ACCEPTANCE_PERCENTAGE) as u64
-                {
-                    <SomeSuccessfulReferendums<T>>::insert(subject, referendum);
-                }
-                <SomeVotedCitizens<T>>::remove(subject);
-                <SomeActiveReferendums<T>>::remove(subject);
-            }
+        fn finalize_voting(_subject: T::Hash, _voting_setting: VotingSettings<T::BlockNumber>) {
+            //FIXME Нужно исправить данный фрагмет кода ошибка состоит в том что не правильно был сделан порядок создания и очищения голосования
+            // Одним из вариантов исправление вынести создание голосования в функцию initialize()
+            // if let Some(petition) = <SomeActivePetitions<T>>::get(subject) {
+            //     // more than 10%
+            //     if voting_setting.result
+            //         > ((pallet_identity::Pallet::<T>::citizens_amount() as f64)
+            //             * T::PETITION_ACCEPTANCE_PERCENTAGE) as u64
+            //     {
+            //         <SomeActiveReferendums<T>>::insert(subject, petition);
+            //         T::VotingTrait::create_voting(subject, T::ReferendumDuration::get()).unwrap();
+            //     }
+            //     <SomeVotedCitizens<T>>::remove(subject);
+            //     <SomeActivePetitions<T>>::remove(subject);
+            //     return;
+            // }
+            // if let Some(referendum) = <SomeActiveReferendums<T>>::get(subject) {
+            //     // more than 50%
+            //     if voting_setting.result
+            //         > ((pallet_identity::Pallet::<T>::citizens_amount() as f64)
+            //             * T::REFERENDUM_ACCEPTANCE_PERCENTAGE) as u64
+            //     {
+            //         <SomeSuccessfulReferendums<T>>::insert(subject, referendum);
+            //     }
+            //     <SomeVotedCitizens<T>>::remove(subject);
+            //     <SomeActiveReferendums<T>>::remove(subject);
+            // }
         }
     }
 }

@@ -8,6 +8,7 @@ use sp_runtime::{
 };
 use sp_std::collections::btree_set::BTreeSet;
 use sp_std::collections::vec_deque::VecDeque;
+use system::ensure_signed;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -69,7 +70,19 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         .into()
 }
 
-pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
+pub fn get_ballots_mock() -> Vec<(u64, pallet_voting::AltVote)> {
+    let account1 = Origin::signed(1);
+    let account2 = Origin::signed(2);
+    let account3 = Origin::signed(3);
+    let account4 = Origin::signed(4);
+    let account5 = Origin::signed(5);
+    let account6 = Origin::signed(6);
+    let account7 = Origin::signed(7);
+    let account8 = Origin::signed(8);
+    let account9 = Origin::signed(9);
+    let account10 = Origin::signed(10);
+    let account11 = Origin::signed(11);
+
     let v = vec![
         [1_u8; 32].to_vec(),
         [2_u8; 32].to_vec(),
@@ -77,27 +90,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
     ];
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    let mut result_ballot_list = vec![ballot];
-
-    let v = vec![
-        [1_u8; 32].to_vec(),
-        [2_u8; 32].to_vec(),
-        [3_u8; 32].to_vec(),
-    ];
-
-    let voutes = VecDeque::from(v);
-    let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
-
-    let v = vec![
-        [1_u8; 32].to_vec(),
-        [2_u8; 32].to_vec(),
-        [3_u8; 32].to_vec(),
-    ];
-
-    let voutes = VecDeque::from(v);
-    let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
+    let mut result_ballot_list = vec![(ensure_signed(account1.clone()).unwrap(), ballot)];
 
     let v = vec![
         [1_u8; 32].to_vec(),
@@ -107,7 +100,27 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
+    result_ballot_list.push((ensure_signed(account2.clone()).unwrap(), ballot));
+
+    let v = vec![
+        [1_u8; 32].to_vec(),
+        [2_u8; 32].to_vec(),
+        [3_u8; 32].to_vec(),
+    ];
+
+    let voutes = VecDeque::from(v);
+    let ballot = pallet_voting::AltVote::new(voutes);
+    result_ballot_list.push((ensure_signed(account3.clone()).unwrap(), ballot));
+
+    let v = vec![
+        [1_u8; 32].to_vec(),
+        [2_u8; 32].to_vec(),
+        [3_u8; 32].to_vec(),
+    ];
+
+    let voutes = VecDeque::from(v);
+    let ballot = pallet_voting::AltVote::new(voutes);
+    result_ballot_list.push((ensure_signed(account4.clone()).unwrap(), ballot));
 
     let v = vec![
         [2_u8; 32].to_vec(),
@@ -117,7 +130,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
+    result_ballot_list.push((ensure_signed(account5.clone()).unwrap(), ballot));
 
     let v = vec![
         [2_u8; 32].to_vec(),
@@ -127,7 +140,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
+    result_ballot_list.push((ensure_signed(account6.clone()).unwrap(), ballot));
 
     let v = vec![
         [2_u8; 32].to_vec(),
@@ -137,7 +150,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
+    result_ballot_list.push((ensure_signed(account7.clone()).unwrap(), ballot));
 
     let v = vec![
         [3_u8; 32].to_vec(),
@@ -147,7 +160,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
+    result_ballot_list.push((ensure_signed(account8.clone()).unwrap(), ballot));
 
     let v = vec![
         [3_u8; 32].to_vec(),
@@ -157,7 +170,7 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
+    result_ballot_list.push((ensure_signed(account9.clone()).unwrap(), ballot));
 
     let v = vec![
         [3_u8; 32].to_vec(),
@@ -167,13 +180,13 @@ pub fn get_ballots_mock() -> Vec<pallet_voting::AltVote> {
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
+    result_ballot_list.push((ensure_signed(account10.clone()).unwrap(), ballot));
 
     let v = vec![[4_u8; 32].to_vec(), [3_u8; 32].to_vec()];
 
     let voutes = VecDeque::from(v);
     let ballot = pallet_voting::AltVote::new(voutes);
-    result_ballot_list.push(ballot);
+    result_ballot_list.push((ensure_signed(account11.clone()).unwrap(), ballot));
 
     result_ballot_list
 }

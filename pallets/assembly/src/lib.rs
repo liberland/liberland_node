@@ -62,6 +62,10 @@ pub mod pallet {
         IsNotActiveVoting,
         AlreadyVoted,
         VotingIsAlreadyInProgress,
+        AssemblyNotFound,
+        NoSuchBallot,
+        ChangePowerTooBig,
+        AccountCannotSupport,
     }
 
     #[pallet::hooks]
@@ -114,6 +118,16 @@ pub mod pallet {
     #[pallet::getter(fn assemblys_stake_amount)]
     type AssemblyStakeAmount<T: Config> = StorageValue<_, u64, ValueQuery, DefaultLiberAmount>;
 
+    #[pallet::storage]
+    #[pallet::getter(fn ballots)]
+    type Ballots<T: Config> =
+        StorageMap<_, Blake2_128Concat, T::AccountId, u64, ValueQuery, DefaultBallot<T>>;
+
+    #[pallet::type_value]
+    pub fn DefaultBallot<T: Config>() -> u64 {
+        Default::default()
+    }
+
     #[pallet::type_value]
     pub fn DefaultCandidates() -> BTreeSet<Candidate> {
         Default::default()
@@ -153,7 +167,7 @@ pub mod pallet {
                 <Error<T>>::AccountCannotVote
             );
             //this unwrap() is correct
-            let citizen = pallet_identity::Pallet::<T>::passport_id(sender).unwrap();
+            let citizen = pallet_identity::Pallet::<T>::passport_id(sender.clone()).unwrap();
             ensure!(
                 !<VotedCitizens<T>>::get().contains(&citizen),
                 <Error<T>>::AlreadyVoted
@@ -166,7 +180,7 @@ pub mod pallet {
                 });
 
             let power = TryInto::<u64>::try_into(power).ok().unwrap();
-            Self::alt_vote(T::AssemblyVotingHash::get(), ballot, power)?;
+            Self::alt_vote(T::AssemblyVotingHash::get(), sender, ballot, power)?;
             <VotedCitizens<T>>::mutate(|voted_citizens| {
                 voted_citizens.insert(citizen);
             });
@@ -243,6 +257,62 @@ pub mod pallet {
             });
             Ok(().into())
         }
+
+        #[pallet::weight(1)]
+        pub(super) fn change_support(
+            origin: OriginFor<T>,
+            assembly_id: Candidate,
+            change_power: i64,
+        ) -> DispatchResultWithPostInfo {
+            let sender = ensure_signed(origin)?;
+            ensure!(
+                T::IdentTrait::check_account_indetity(sender.clone(), IdentityType::Citizen),
+                <Error<T>>::AccountCannotSupport
+            );
+            let assemblies = <CurrentMinistersList<T>>::get();
+            ensure!(
+                assemblies.contains_key(&assembly_id),
+                <Error<T>>::AssemblyNotFound
+            );
+            let liber_stake = T::StakingTrait::get_liber_amount(sender.clone());
+            let liber_stake = TryInto::<u64>::try_into(liber_stake).ok().unwrap();
+            if change_power.is_negative() {
+                ensure!(
+                    (-change_power) as u64 <= liber_stake,
+                    <Error<T>>::ChangePowerTooBig
+                );
+            } else {
+                ensure!(
+                    change_power as u64 <= liber_stake,
+                    <Error<T>>::ChangePowerTooBig
+                );
+            }
+            let current_citizen_power = Self::ballots(sender.clone());
+            let current_assembly_power = assemblies.get(&assembly_id).unwrap();
+            let assemblies_res_power;
+            let citizens_res_power;
+            if change_power > 0 {
+                if current_citizen_power + change_power as u64 > liber_stake {
+                    citizens_res_power = liber_stake;
+                    assemblies_res_power = *current_assembly_power;
+                } else {
+                    citizens_res_power = current_citizen_power + change_power.unsigned_abs();
+                    assemblies_res_power = current_assembly_power + change_power.unsigned_abs();
+                }
+            } else if change_power.unsigned_abs() > current_citizen_power {
+                citizens_res_power = 0;
+                assemblies_res_power = *current_assembly_power;
+            } else {
+                citizens_res_power = current_citizen_power - change_power.unsigned_abs();
+                assemblies_res_power = current_assembly_power - change_power.unsigned_abs();
+            }
+
+            <Ballots<T>>::insert(sender, citizens_res_power);
+            <CurrentMinistersList<T>>::mutate(|asymblies_storage| {
+                asymblies_storage.insert(assembly_id, assemblies_res_power);
+            });
+            Ok(().into())
+        }
     }
 
     impl<T: Config> Pallet<T> {
@@ -268,8 +338,13 @@ pub mod pallet {
             Ok(())
         }
 
-        pub fn alt_vote(subject: T::Hash, ballot: AltVote, power: u64) -> Result<(), Error<T>> {
-            match T::VotingTrait::alt_vote_list(subject, ballot, power) {
+        pub fn alt_vote(
+            subject: T::Hash,
+            account_id: T::AccountId,
+            ballot: AltVote,
+            power: u64,
+        ) -> Result<(), Error<T>> {
+            match T::VotingTrait::alt_vote_list(subject, account_id, ballot, power) {
                 Ok(_) => Ok(()),
                 Err(_) => Err(<Error<T>>::VotingNotFound),
             }
@@ -282,6 +357,7 @@ pub mod pallet {
         }
     }
 
+    #[allow(clippy::type_complexity)]
     impl<T: Config> pallet_voting::finalize_voiting_trait::FinalizeAltVotingListDispatchTrait<T>
         for Pallet<T>
     {
@@ -289,6 +365,7 @@ pub mod pallet {
             _subject: T::Hash,
             _voting_settings: pallet_voting::AltVotingListSettings<T::BlockNumber>,
             winners: BTreeMap<Candidate, u64>,
+            ballots_storage: BTreeMap<T::Hash, BTreeMap<T::AccountId, (AltVote, u64)>>,
         ) {
             <CurrentMinistersList<T>>::get()
                 .iter()
@@ -298,10 +375,13 @@ pub mod pallet {
                         IdentityType::Assembly,
                     );
                 });
+
+            <Ballots<T>>::remove_all();
             <AssemblyStakeAmount<T>>::kill();
             <CurrentMinistersList<T>>::kill();
             <CandidatesList<T>>::kill();
             <VotedCitizens<T>>::kill();
+
             <CurrentMinistersList<T>>::mutate(|e| {
                 for (id, power) in winners.iter() {
                     T::IdentTrait::push_identity(
@@ -311,6 +391,13 @@ pub mod pallet {
                     .unwrap();
                     e.insert(id.clone(), *power);
                 }
+            });
+
+            ballots_storage.iter().for_each(|storage| {
+                storage.1.iter().for_each(|map| {
+                    let alt = map.1;
+                    <Ballots<T>>::insert(map.0, alt.1);
+                });
             });
             <VotingState<T>>::mutate(|state| *state = false);
         }

@@ -63,7 +63,7 @@ fn basic_assembly_test() {
 
         let account8 = Origin::signed(8);
         let id8 = [8; 32];
-        Staking::liberland_bond(Origin::signed(8), 8, 1, RewardDestination::Controller).unwrap();
+        Staking::liberland_bond(Origin::signed(8), 8, 3, RewardDestination::Controller).unwrap();
         IdentityPallet::match_account_to_id(ensure_signed(account8.clone()).unwrap(), id8);
         IdentityPallet::push_identity(id8.clone(), IdentityType::Citizen).unwrap();
 
@@ -152,7 +152,7 @@ fn basic_assembly_test() {
         VotingPallet::on_finalize(10 + 100 + 1);
         assert_eq!(AssemblyPallet::voting_state(), false);
         let mut winners = BTreeMap::new();
-        winners.insert([1_u8; 32].to_vec(), 3);
+        winners.insert([1_u8; 32].to_vec(), 5);
         winners.insert([2_u8; 32].to_vec(), 1);
         winners.insert([3_u8; 32].to_vec(), 1);
         assert_eq!(AssemblyPallet::ministers_list(), winners);
@@ -176,6 +176,63 @@ fn basic_assembly_test() {
                 .iter()
                 .cloned()
                 .collect()
+        );
+
+        // Change power test
+
+        //AssemblyPallet::change_support_v2(account8.clone(), [1_u8; 32].to_vec(), -1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+
+        let mut winners = BTreeMap::new();
+        winners.insert([1_u8; 32].to_vec(), 5);
+        winners.insert([2_u8; 32].to_vec(), 1);
+        winners.insert([3_u8; 32].to_vec(), 1);
+        assert_eq!(AssemblyPallet::ministers_list(), winners);
+
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), -1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), -1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), -1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), -1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), -1).unwrap();
+
+        let mut winners = BTreeMap::new();
+        winners.insert([1_u8; 32].to_vec(), 2);
+        winners.insert([2_u8; 32].to_vec(), 1);
+        winners.insert([3_u8; 32].to_vec(), 1);
+        assert_eq!(AssemblyPallet::ministers_list(), winners);
+
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 1).unwrap();
+
+        let mut winners = BTreeMap::new();
+        winners.insert([1_u8; 32].to_vec(), 5);
+        winners.insert([2_u8; 32].to_vec(), 1);
+        winners.insert([3_u8; 32].to_vec(), 1);
+        assert_eq!(AssemblyPallet::ministers_list(), winners);
+
+        AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), -3).unwrap();
+        AssemblyPallet::change_support(account8.clone(), [2_u8; 32].to_vec(), 3).unwrap();
+
+        let mut winners = BTreeMap::new();
+        winners.insert([1_u8; 32].to_vec(), 2);
+        winners.insert([2_u8; 32].to_vec(), 4);
+        winners.insert([3_u8; 32].to_vec(), 1);
+        assert_eq!(AssemblyPallet::ministers_list(), winners);
+
+        assert_err!(
+            AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), 10),
+            <Error<Test>>::ChangePowerTooBig
+        );
+        assert_err!(
+            AssemblyPallet::change_support(account8.clone(), [1_u8; 32].to_vec(), -10),
+            <Error<Test>>::ChangePowerTooBig
         );
 
         AssemblyPallet::on_initialize(10 + 210);
@@ -246,7 +303,7 @@ fn basic_assembly_test() {
         VotingPallet::on_finalize(10 + 320 + 1);
         assert_eq!(AssemblyPallet::voting_state(), false);
         let mut winners = BTreeMap::new();
-        winners.insert([1_u8; 32].to_vec(), 3);
+        winners.insert([1_u8; 32].to_vec(), 5);
         winners.insert([2_u8; 32].to_vec(), 1);
         winners.insert([3_u8; 32].to_vec(), 1);
         assert_eq!(AssemblyPallet::ministers_list(), winners);
@@ -289,7 +346,7 @@ fn basic_assembly_test() {
         VotingPallet::on_finalize(10 + 430 + 1);
         assert_eq!(AssemblyPallet::voting_state(), false);
         let mut winners = BTreeMap::new();
-        winners.insert([1_u8; 32].to_vec(), 3);
+        winners.insert([1_u8; 32].to_vec(), 5);
         winners.insert([2_u8; 32].to_vec(), 1);
         winners.insert([3_u8; 32].to_vec(), 1);
         assert_eq!(AssemblyPallet::ministers_list(), winners);
