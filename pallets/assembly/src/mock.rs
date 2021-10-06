@@ -282,9 +282,9 @@ impl Default for ExtBuilder {
     }
 }
 parameter_types! {
-    pub const AssemblyElectionPeriod: u64 = 10;
-    pub const AssemblyVotingDuration: u64 = 100;
-    pub const LawVotingDuration: u64 = 10;
+    pub const AssemblyElectionPeriod: u64 = 3 * 60 * 1000 / 6000;
+    pub const AssemblyVotingDuration: u64 = 2 * 60 * 1000 / 6000;
+    pub const LawVotingDuration: u64 = 60 * 1000 / 6000;
     pub const AssemblyVotingHash: H256 = sp_core::H256::zero();
     pub const WinnersAmount: u32 = 3;
 }

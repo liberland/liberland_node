@@ -62,6 +62,7 @@ pub mod pallet {
         IsNotActiveVoting,
         AlreadyVoted,
         VotingIsAlreadyInProgress,
+        LifeTimeIsLessThanLaws,
         AssemblyNotFound,
         NoSuchBallot,
         ChangePowerTooBig,
@@ -208,6 +209,27 @@ pub mod pallet {
             law_type: LawType,
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
+            let current_block = TryInto::<u64>::try_into(<frame_system::Pallet<T>>::block_number())
+                .ok()
+                .unwrap();
+            let assembly_voting_duration =
+                TryInto::<u64>::try_into(T::AssemblyVotingDuration::get())
+                    .ok()
+                    .unwrap();
+            let assembly_election_period =
+                TryInto::<u64>::try_into(T::AssemblyVotingDuration::get())
+                    .ok()
+                    .unwrap();
+            let laws_voting_duration = TryInto::<u64>::try_into(T::LawVotingDuration::get())
+                .ok()
+                .unwrap();
+            let x: f64 =
+                (current_block / (assembly_voting_duration + assembly_election_period)) as f64;
+            ensure!(
+                (x + 1.0) * (assembly_election_period + assembly_election_period) as f64
+                    >= (current_block + laws_voting_duration) as f64,
+                <Error<T>>::LifeTimeIsLessThanLaws
+            );
             ensure!(
                 T::IdentTrait::check_account_indetity(sender, IdentityType::Assembly),
                 <Error<T>>::AccountCannotProposeLaw
