@@ -90,7 +90,7 @@ pub mod pallet {
 
     #[pallet::storage]
     #[pallet::getter(fn ministers_list)]
-    type CurrentMinistersList<T: Config> =
+    type CurrentAssembliesList<T: Config> =
         StorageValue<_, BTreeMap<Candidate, u64>, ValueQuery, DefaultMinisters>;
 
     #[pallet::storage]
@@ -104,7 +104,7 @@ pub mod pallet {
         T::Hash,
         BTreeSet<VotedAssembly>,
         ValueQuery,
-        DefaultVotedAssemblyes,
+        DefaultVotedAssemblies,
     >;
 
     #[pallet::storage]
@@ -140,7 +140,7 @@ pub mod pallet {
     }
 
     #[pallet::type_value]
-    pub fn DefaultVotedAssemblyes() -> BTreeSet<VotedAssembly> {
+    pub fn DefaultVotedAssemblies() -> BTreeSet<VotedAssembly> {
         BTreeSet::new()
     }
 
@@ -269,7 +269,7 @@ pub mod pallet {
             );
 
             //this unwrap() is correct
-            let power = *<CurrentMinistersList<T>>::get()
+            let power = *<CurrentAssembliesList<T>>::get()
                 .get(&assembly.id.to_vec())
                 .unwrap();
 
@@ -291,7 +291,7 @@ pub mod pallet {
                 T::IdentTrait::check_account_indetity(sender.clone(), IdentityType::Citizen),
                 <Error<T>>::AccountCannotSupport
             );
-            let assemblies = <CurrentMinistersList<T>>::get();
+            let assemblies = <CurrentAssembliesList<T>>::get();
             ensure!(
                 assemblies.contains_key(&assembly_id),
                 <Error<T>>::AssemblyNotFound
@@ -330,7 +330,7 @@ pub mod pallet {
             }
 
             <Ballots<T>>::insert(sender, citizens_res_power);
-            <CurrentMinistersList<T>>::mutate(|asymblies_storage| {
+            <CurrentAssembliesList<T>>::mutate(|asymblies_storage| {
                 asymblies_storage.insert(assembly_id, assemblies_res_power);
             });
             Ok(().into())
@@ -389,7 +389,7 @@ pub mod pallet {
             winners: BTreeMap<Candidate, u64>,
             ballots_storage: BTreeMap<T::Hash, BTreeMap<T::AccountId, (AltVote, u64)>>,
         ) {
-            <CurrentMinistersList<T>>::get()
+            <CurrentAssembliesList<T>>::get()
                 .iter()
                 .for_each(|assembly| {
                     T::IdentTrait::remove_identity(
@@ -400,11 +400,11 @@ pub mod pallet {
 
             <Ballots<T>>::remove_all();
             <AssemblyStakeAmount<T>>::kill();
-            <CurrentMinistersList<T>>::kill();
+            <CurrentAssembliesList<T>>::kill();
             <CandidatesList<T>>::kill();
             <VotedCitizens<T>>::kill();
 
-            <CurrentMinistersList<T>>::mutate(|e| {
+            <CurrentAssembliesList<T>>::mutate(|e| {
                 for (id, power) in winners.iter() {
                     T::IdentTrait::push_identity(
                         Self::vec_u8_to_pasport_id(id),
@@ -430,7 +430,7 @@ pub mod pallet {
             subject: T::Hash,
             voting_setting: pallet_voting::VotingSettings<T::BlockNumber>,
         ) {
-            let total_power: u64 = <CurrentMinistersList<T>>::get().iter().map(|e| e.1).sum();
+            let total_power: u64 = <CurrentAssembliesList<T>>::get().iter().map(|e| e.1).sum();
             <AssemblyStakeAmount<T>>::mutate(|value| *value = total_power);
             if let Some(law) = <Laws<T>>::get(subject) {
                 match law.law_type {
