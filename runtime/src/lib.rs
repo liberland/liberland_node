@@ -52,6 +52,7 @@ pub use pallet_documentation;
 pub use pallet_identity;
 use pallet_identity::IdentityTrait;
 pub use pallet_min_interior;
+pub use pallet_prime_minister;
 pub use pallet_referendum;
 pub use pallet_staking;
 pub use pallet_voting;
@@ -313,7 +314,7 @@ impl pallet_min_interior::Config for Runtime {
 /// Configure the pallet-voting in pallets/voting.
 impl pallet_voting::Config for Runtime {
     type FinalizeVotingDispatch = (ReferendumPallet, AssemblyPallet);
-    type FinalizeAltVotingDispatch = ();
+    type FinalizeAltVotingDispatch = PrimeMinPallet;
     type FinalizeAltVotingListDispatch = AssemblyPallet;
 }
 parameter_types! {
@@ -334,6 +335,11 @@ impl pallet_referendum::Config for Runtime {
 
 /// Configure the pallet-documentation in pallets/documentation.
 impl pallet_documentation::Config for Runtime {}
+
+impl pallet_prime_minister::Config for Runtime {
+    type IdentityTrait = IdentityPallet;
+    type VotingTrait = VotingPallet;
+}
 
 parameter_types! {
     // 3 minutes
@@ -541,6 +547,7 @@ construct_runtime!(
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
         ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
         DocumentationPallet: pallet_documentation::{Pallet, Call, Storage},
+        PrimeMinPallet: pallet_prime_minister::{Pallet, Call, Storage},
         StakingPallet: pallet_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
         AssemblyPallet: pallet_assembly::{Pallet, Call, Storage},
     }

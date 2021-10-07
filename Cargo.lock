@@ -2836,6 +2836,7 @@ dependencies = [
  "pallet-grandpa",
  "pallet-identity",
  "pallet-min-interior",
+ "pallet-prime-minister",
  "pallet-randomness-collective-flip",
  "pallet-referendum",
  "pallet-session",
@@ -4090,6 +4091,25 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-identity",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-prime-minister"
+version = "1.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-identity",
+ "pallet-session",
+ "pallet-voting",
  "parity-scale-codec",
  "serde",
  "sp-api",
