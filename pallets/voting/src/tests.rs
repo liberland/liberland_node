@@ -52,7 +52,8 @@ fn basic_alt_voting_test() {
             let power = 1;
             assert_ok!(VotingPallet::alt_vote(
                 subject.clone(),
-                ballot.clone(),
+                ballot.0,
+                ballot.1.clone(),
                 power
             ));
         });
@@ -97,7 +98,8 @@ fn basic_alt_voting_list_test() {
             let power = 1;
             assert_ok!(VotingPallet::alt_vote_list(
                 subject.clone(),
-                ballot.clone(),
+                ballot.0,
+                ballot.1.clone(),
                 power
             ));
         });
@@ -142,66 +144,77 @@ fn alt_vote_list_teset_with_power() {
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[0].clone(),
+            ballots_list[0].0.clone(),
+            ballots_list[0].1.clone(),
             10
         ));
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[1].clone(),
+            ballots_list[1].0.clone(),
+            ballots_list[1].1.clone(),
             10
         ));
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[2].clone(),
+            ballots_list[2].0.clone(),
+            ballots_list[2].1.clone(),
             10
         ));
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[3].clone(),
+            ballots_list[3].0.clone(),
+            ballots_list[3].1.clone(),
             5
         ));
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[4].clone(),
+            ballots_list[4].0.clone(),
+            ballots_list[4].1.clone(),
             5
         ));
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[5].clone(),
+            ballots_list[5].0.clone(),
+            ballots_list[5].1.clone(),
             5
         ));
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[6].clone(),
+            ballots_list[6].0.clone(),
+            ballots_list[6].1.clone(),
             1
         ));
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[7].clone(),
+            ballots_list[7].0.clone(),
+            ballots_list[7].1.clone(),
             1
         ));
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[8].clone(),
+            ballots_list[8].0.clone(),
+            ballots_list[8].1.clone(),
             1
         ));
 
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[9].clone(),
+            ballots_list[9].0.clone(),
+            ballots_list[9].1.clone(),
             1
         ));
         assert_ok!(VotingPallet::alt_vote_list(
             subject.clone(),
-            ballots_list[10].clone(),
+            ballots_list[10].0.clone(),
+            ballots_list[10].1.clone(),
             1
         ));
 
@@ -235,66 +248,77 @@ fn alt_vote_teset_with_power() {
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[0].clone(),
+            ballots_list[0].0.clone(),
+            ballots_list[0].1.clone(),
             10
         ));
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[1].clone(),
+            ballots_list[1].0.clone(),
+            ballots_list[1].1.clone(),
             10
         ));
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[2].clone(),
+            ballots_list[2].0.clone(),
+            ballots_list[2].1.clone(),
             10
         ));
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[3].clone(),
+            ballots_list[3].0.clone(),
+            ballots_list[3].1.clone(),
             5
         ));
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[4].clone(),
+            ballots_list[4].0.clone(),
+            ballots_list[4].1.clone(),
             5
         ));
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[5].clone(),
+            ballots_list[5].0.clone(),
+            ballots_list[5].1.clone(),
             5
         ));
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[6].clone(),
+            ballots_list[6].0.clone(),
+            ballots_list[6].1.clone(),
             1
         ));
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[7].clone(),
+            ballots_list[7].0.clone(),
+            ballots_list[7].1.clone(),
             1
         ));
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[8].clone(),
+            ballots_list[8].0.clone(),
+            ballots_list[8].1.clone(),
             1
         ));
 
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[9].clone(),
+            ballots_list[9].0.clone(),
+            ballots_list[9].1.clone(),
             1
         ));
         assert_ok!(VotingPallet::alt_vote(
             subject.clone(),
-            ballots_list[10].clone(),
+            ballots_list[10].0.clone(),
+            ballots_list[10].1.clone(),
             1
         ));
 

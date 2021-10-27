@@ -52,6 +52,7 @@ pub use pallet_documentation;
 pub use pallet_identity;
 use pallet_identity::IdentityTrait;
 pub use pallet_min_interior;
+pub use pallet_prime_minister;
 pub use pallet_referendum;
 pub use pallet_staking;
 pub use pallet_voting;
@@ -313,7 +314,7 @@ impl pallet_min_interior::Config for Runtime {
 /// Configure the pallet-voting in pallets/voting.
 impl pallet_voting::Config for Runtime {
     type FinalizeVotingDispatch = (ReferendumPallet, AssemblyPallet);
-    type FinalizeAltVotingDispatch = ();
+    type FinalizeAltVotingDispatch = PrimeMinPallet;
     type FinalizeAltVotingListDispatch = AssemblyPallet;
 }
 parameter_types! {
@@ -335,6 +336,11 @@ impl pallet_referendum::Config for Runtime {
 /// Configure the pallet-documentation in pallets/documentation.
 impl pallet_documentation::Config for Runtime {}
 
+impl pallet_prime_minister::Config for Runtime {
+    type IdentityTrait = IdentityPallet;
+    type VotingTrait = VotingPallet;
+}
+
 parameter_types! {
     // 10 minutes
     pub const AssemblyElectionPeriod: u32 = 10 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
@@ -344,6 +350,9 @@ parameter_types! {
     pub const LawVotingDuration: u32 = 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
     pub const AssemblyVotingHash: H256 = sp_core::H256::zero();
     pub const WinnersAmount: u32 = 3;
+    pub const PrimeMinVotingDuration: u32 = 2 * 60 * 1000 / 6000;
+    pub const PrimeMinVotingHash: H256 = sp_core::H256::repeat_byte(1);
+    pub const PrimeMinVotingDelay: u32 = 10;
 
 
 }
@@ -375,6 +384,9 @@ impl pallet_assembly::Config for Runtime {
     type IdentTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
     type StakingTrait = StakingPallet;
+    type PrimeMinVotingDuration = PrimeMinVotingDuration;
+    type PrimeMinVotingHash = PrimeMinVotingHash;
+    type PrimeMinVotingDelay = PrimeMinVotingDelay;
 }
 
 parameter_types! {
@@ -541,6 +553,7 @@ construct_runtime!(
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
         ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
         DocumentationPallet: pallet_documentation::{Pallet, Call, Storage},
+        PrimeMinPallet: pallet_prime_minister::{Pallet, Call, Storage},
         StakingPallet: pallet_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
         AssemblyPallet: pallet_assembly::{Pallet, Call, Storage},
     }

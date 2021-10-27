@@ -58,6 +58,7 @@ pallet-referendum = {default-features = false, version = '1.0.0', path = '../pal
 pallet-documentation = {default-features = false, version = '1.0.0', path = '../pallets/documentation'}
 pallet-staking = {default-features = false, version = '3.0.0', path = '../pallets/staking'}
 pallet-assembly = {default-features = false, version = '1.0.0', path = '../pallets/assembly'}
+pallet-prime-minister = {default-features = false, version = '1.0.0', path = '../pallets/prime-minister'}
 
 [features]
 default = ['std']

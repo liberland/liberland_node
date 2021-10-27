@@ -12,12 +12,14 @@ pub trait FinilizeAltVotingDispatchTrait<T: Config> {
         winner: Candidate,
     );
 }
-
+//pub type AccountIdAndBallot <T: Config> = BTreeMap<T::AccountId, (AltVote, u64)>;
+#[allow(clippy::type_complexity)]
 pub trait FinalizeAltVotingListDispatchTrait<T: Config> {
     fn finalize_voting(
         subject: T::Hash,
         voting_settings: AltVotingListSettings<T::BlockNumber>,
         winners: BTreeMap<Candidate, u64>,
+        ballots_storage: BTreeMap<T::Hash, BTreeMap<T::AccountId, (AltVote, u64)>>,
     );
 }
 
@@ -70,8 +72,8 @@ finalize_voting_dispatch_trait_impls! {_1 _2 _3 _4 _5 _6 _7 _8 _9 _10}
 macro_rules! finalize_voting_dispatch_trait_impls {
     ($($name:ident)*) => {
         impl<T: Config, $($name: FinalizeAltVotingListDispatchTrait<T>,)*> FinalizeAltVotingListDispatchTrait<T> for ($($name,)*) {
-            fn finalize_voting(_subject: T::Hash, _voting_setting: AltVotingListSettings<T::BlockNumber>,_winners: BTreeMap<Candidate, u64>) {
-                $($name::finalize_voting(_subject.clone(), _voting_setting.clone(),_winners.clone());)*
+            fn finalize_voting(_subject: T::Hash, _voting_setting: AltVotingListSettings<T::BlockNumber>,_winners: BTreeMap<Candidate, u64>,_ballots_storage: BTreeMap<T::Hash, BTreeMap<T::AccountId, (AltVote, u64)>>) {
+                $($name::finalize_voting(_subject.clone(), _voting_setting.clone(),_winners.clone(),_ballots_storage.clone());)*
             }
         }
     };

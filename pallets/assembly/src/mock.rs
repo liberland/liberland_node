@@ -282,11 +282,14 @@ impl Default for ExtBuilder {
     }
 }
 parameter_types! {
-    pub const AssemblyElectionPeriod: u64 = 10;
-    pub const AssemblyVotingDuration: u64 = 100;
-    pub const LawVotingDuration: u64 = 10;
+    pub const AssemblyElectionPeriod: u64 = 3 * 60 * 1000 / 6000;
+    pub const AssemblyVotingDuration: u64 = 2 * 60 * 1000 / 6000;
+    pub const LawVotingDuration: u64 = 60 * 1000 / 6000;
     pub const AssemblyVotingHash: H256 = sp_core::H256::zero();
     pub const WinnersAmount: u32 = 3;
+    pub const PrimeMinVotingDuration: u32 = 2 * 60 * 1000 / 6000;
+    pub const PrimeMinVotingHash: H256 = sp_core::H256::repeat_byte(1);
+    pub const PrimeMinVotingDelay: u64 = 10;
 }
 impl pallet_assembly::Config for Test {
     type AssemblyElectionPeriod = AssemblyElectionPeriod;
@@ -297,6 +300,9 @@ impl pallet_assembly::Config for Test {
     type IdentTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
     type StakingTrait = Staking;
+    type PrimeMinVotingDuration = PrimeMinVotingDuration;
+    type PrimeMinVotingHash = PrimeMinVotingHash;
+    type PrimeMinVotingDelay = PrimeMinVotingDelay;
 }
 
 impl pallet_identity::Config for Test {}
@@ -304,7 +310,7 @@ impl pallet_identity::Config for Test {}
 impl pallet_voting::Config for Test {
     type FinalizeVotingDispatch = AssemblyPallet;
 
-    type FinalizeAltVotingDispatch = ();
+    type FinalizeAltVotingDispatch = AssemblyPallet;
 
     type FinalizeAltVotingListDispatch = AssemblyPallet;
 }
