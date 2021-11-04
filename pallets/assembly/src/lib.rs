@@ -318,7 +318,11 @@ pub mod pallet {
                 T::IdentTrait::check_account_indetity(sender, IdentityType::Assembly),
                 <Error<T>>::AccountCannotProposeLaw
             );
-            T::VotingTrait::create_voting(law_hash, T::LawVotingDuration::get())?;
+            T::VotingTrait::create_voting(
+                law_hash,
+                T::LawVotingDuration::get(),
+                Some(<CurrentAssembliesList<T>>::get().len() as u32),
+            )?;
             <Laws<T>>::insert(
                 law_hash,
                 Law {
@@ -461,6 +465,7 @@ pub mod pallet {
                 T::PrimeMinVotingHash::get(),
                 T::PrimeMinVotingDuration::get(),
                 <PrimeMinCandidatesList<T>>::get(),
+                Some(<CurrentAssembliesList<T>>::get().len() as u32),
             )
             .unwrap();
         }

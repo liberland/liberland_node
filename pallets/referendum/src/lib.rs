@@ -106,7 +106,7 @@ pub mod pallet {
 
             let petition_hash = T::Hashing::hash(&petition.data[..]);
 
-            T::VotingTrait::create_voting(petition_hash, T::PetitionDuration::get())?;
+            T::VotingTrait::create_voting(petition_hash, T::PetitionDuration::get(), None)?;
             <SomeActivePetitions<T>>::insert(petition_hash, petition);
 
             Ok(().into())
