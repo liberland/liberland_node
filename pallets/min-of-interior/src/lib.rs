@@ -143,26 +143,6 @@ pub mod pallet {
         }
 
         #[pallet::weight(1)]
-        pub(super) fn update_assembly_to_minister(
-            origin: OriginFor<T>,
-            account: PassportId,
-        ) -> DispatchResultWithPostInfo {
-            let sender = ensure_signed(origin)?;
-            ensure!(
-                T::IdentityTrait::check_account_indetity(sender, IdentityType::MinisterOfInterior),
-                <Error<T>>::OnlyMinistryOfInteriorCall
-            );
-
-            ensure!(
-                T::IdentityTrait::check_id_identity(account, IdentityType::Assembly),
-                <Error<T>>::AssemblyNotFound
-            );
-            T::IdentityTrait::push_identity(account, IdentityType::MinisterOfInterior).unwrap(); // This unwrap is correct
-            T::IdentityTrait::remove_identity(account, IdentityType::Assembly);
-            Ok(().into())
-        }
-
-        #[pallet::weight(1)]
         pub(super) fn aprove_to_citizen_or_not(
             origin: OriginFor<T>,
             info: KycRequest<T::AccountId>,
