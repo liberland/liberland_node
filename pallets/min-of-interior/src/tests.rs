@@ -215,53 +215,53 @@ fn e_resident_aproving_test() {
     });
 }
 
-#[test]
-fn update_assembly_to_minister_test() {
-    new_test_ext().execute_with(|| {
-        let id1 = [1; 32];
-        let account2 = Origin::signed(2);
-        let id2 = [2; 32];
-        let id3 = [4; 32];
+// #[test]
+// fn update_assembly_to_minister_test() {
+//     new_test_ext().execute_with(|| {
+//         let id1 = [1; 32];
+//         let account2 = Origin::signed(2);
+//         let id2 = [2; 32];
+//         let id3 = [4; 32];
 
-        let reviewer_account = Origin::signed(3);
-        let reviewer_id = [3; 32];
+//         let reviewer_account = Origin::signed(3);
+//         let reviewer_id = [3; 32];
 
-        IdentityPallet::match_account_to_id(
-            ensure_signed(reviewer_account.clone()).unwrap(),
-            reviewer_id,
-        );
-        IdentityPallet::push_identity(reviewer_id, IdentityType::Citizen).unwrap();
-        IdentityPallet::push_identity(reviewer_id, IdentityType::MinisterOfInterior).unwrap();
+//         IdentityPallet::match_account_to_id(
+//             ensure_signed(reviewer_account.clone()).unwrap(),
+//             reviewer_id,
+//         );
+//         IdentityPallet::push_identity(reviewer_id, IdentityType::Citizen).unwrap();
+//         IdentityPallet::push_identity(reviewer_id, IdentityType::MinisterOfInterior).unwrap();
 
-        IdentityPallet::push_identity(id1, IdentityType::Citizen).unwrap();
-        IdentityPallet::push_identity(id1, IdentityType::Assembly).unwrap();
+//         IdentityPallet::push_identity(id1, IdentityType::Citizen).unwrap();
+//         IdentityPallet::push_identity(id1, IdentityType::Assembly).unwrap();
 
-        //IdentityPallet
-        MinInteriorPallet::update_assembly_to_minister(reviewer_account.clone(), id1.clone())
-            .unwrap();
+//         //IdentityPallet
+//         MinInteriorPallet::update_assembly_to_minister(reviewer_account.clone(), id1.clone())
+//             .unwrap();
 
-        assert_eq!(
-            IdentityPallet::identities(id1),
-            [IdentityType::Citizen, IdentityType::MinisterOfInterior,]
-                .iter()
-                .cloned()
-                .collect()
-        );
+//         assert_eq!(
+//             IdentityPallet::identities(id1),
+//             [IdentityType::Citizen, IdentityType::MinisterOfInterior,]
+//                 .iter()
+//                 .cloned()
+//                 .collect()
+//         );
 
-        IdentityPallet::match_account_to_id(ensure_signed(account2.clone()).unwrap(), id2);
+//         IdentityPallet::match_account_to_id(ensure_signed(account2.clone()).unwrap(), id2);
 
-        IdentityPallet::push_identity(id2, IdentityType::Citizen).unwrap();
+//         IdentityPallet::push_identity(id2, IdentityType::Citizen).unwrap();
 
-        IdentityPallet::push_identity(id3, IdentityType::Citizen).unwrap();
+//         IdentityPallet::push_identity(id3, IdentityType::Citizen).unwrap();
 
-        assert_err!(
-            MinInteriorPallet::update_assembly_to_minister(account2.clone(), id3.clone()),
-            <Error<Test>>::OnlyMinistryOfInteriorCall
-        );
+//         assert_err!(
+//             MinInteriorPallet::update_assembly_to_minister(account2.clone(), id3.clone()),
+//             <Error<Test>>::OnlyMinistryOfInteriorCall
+//         );
 
-        assert_err!(
-            MinInteriorPallet::update_assembly_to_minister(reviewer_account.clone(), id3.clone()),
-            <Error<Test>>::AssemblyNotFound
-        );
-    });
-}
+//         assert_err!(
+//             MinInteriorPallet::update_assembly_to_minister(reviewer_account.clone(), id3.clone()),
+//             <Error<Test>>::AssemblyNotFound
+//         );
+//     });
+// }
