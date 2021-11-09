@@ -54,10 +54,13 @@ impl system::Config for Test {
     type SS58Prefix = SS58Prefix;
     type OnSetCode = ();
 }
-
+parameter_types! {
+   pub InvitationsDuration: u64 = 10;
+}
 impl pallet_prime_minister::Config for Test {
     type IdentityTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
+    type InvitationsDuration = InvitationsDuration;
 }
 
 impl pallet_identity::Config for Test {}

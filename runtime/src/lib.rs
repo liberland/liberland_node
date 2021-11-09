@@ -336,9 +336,14 @@ impl pallet_referendum::Config for Runtime {
 /// Configure the pallet-documentation in pallets/documentation.
 impl pallet_documentation::Config for Runtime {}
 
+parameter_types! {
+    pub const InvitationsDuration: u32 = 10;
+}
+
 impl pallet_prime_minister::Config for Runtime {
     type IdentityTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
+    type InvitationsDuration = InvitationsDuration;
 }
 
 parameter_types! {
