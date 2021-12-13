@@ -1,3 +1,4 @@
+// Module do identify the citizens of Liberland, registering the association of a passportid with a blockchain account.
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::unnecessary_mut_passed)]
@@ -31,9 +32,9 @@ pub mod pallet {
     pub fn IdentityTypesDefault() -> BTreeSet<IdentityType> {
         Default::default()
     }
-
+    // definition of the storage for identities
     #[pallet::storage]
-    #[pallet::getter(fn identities)]
+    #[pallet::getter(fn identities)]           
     pub type Identities<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
@@ -43,11 +44,13 @@ pub mod pallet {
         IdentityTypesDefault,
     >;
 
+    // definition of the storage for passport id
     #[pallet::storage]
     #[pallet::getter(fn passport_id)]
     type PassportIds<T: Config> =
         StorageMap<_, Blake2_128Concat, T::AccountId, PassportId, OptionQuery>;
 
+    // definition of the storage for account id
     #[pallet::storage]
     #[pallet::getter(fn account_ids)]
     type AccountIds<T: Config> = StorageMap<
@@ -58,16 +61,16 @@ pub mod pallet {
         ValueQuery,
         DefaultAccountIdsSet<T>,
     >;
-
+    // definition of the storage for the total number of registered citizens
     #[pallet::storage]
     #[pallet::getter(fn citizens_amount)]
     type CitizensAmount<T: Config> = StorageValue<_, u64, ValueQuery, DefaultCitizensAmountStorage>;
 
+    // definition of default values 
     #[pallet::type_value]
     pub fn DefaultCitizensAmountStorage() -> u64 {
         0_u64
     }
-
     #[pallet::type_value]
     pub fn DefaultAccountIdsSet<T: Config>() -> BTreeSet<T::AccountId> {
         Default::default()
@@ -79,12 +82,12 @@ pub mod pallet {
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
+    // definition of genesis configuration
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
         pub citizens: Vec<(T::AccountId, PassportId)>,
         pub reviewers: Vec<PassportId>,
     }
-
     #[cfg(feature = "std")]
     impl<T: Config> Default for GenesisConfig<T> {
         fn default() -> Self {
@@ -108,12 +111,13 @@ pub mod pallet {
             }
         }
     }
-
+    // TODO VERIFY AUTHORIZATION TO CHANGE STATE - only a limited set of accounts should be authorized
     #[pallet::call]
     impl<T: Config> Pallet<T> {}
 
     impl<T: Config> IdentityTrait<T> for Pallet<T> {
         // TODO return value of the function should be Result<(), Error>
+        // function to store the association of account with passport id
         fn match_account_to_id(account: T::AccountId, id: PassportId) {
             assert!(
                 <PassportIds<T>>::get(account.clone()) == None,
@@ -124,7 +128,7 @@ pub mod pallet {
                 accounts.insert(account);
             });
         }
-
+        // function to store the identity type by passport
         fn push_identity(id: PassportId, id_type: IdentityType) -> Result<(), &'static str> {
             match id_type {
                 IdentityType::EResident => {
@@ -134,7 +138,7 @@ pub mod pallet {
                         <Identities<T>>::insert(id, types);
                         Ok(())
                     } else {
-                        Err("Citizen cannot become the Eresidence at the same time")
+                        Err("Citizen cannot become the E-resident at the same time")
                     }
                 }
                 IdentityType::Citizen => {
@@ -163,7 +167,7 @@ pub mod pallet {
                 }
             }
         }
-
+        // function to remove a citizend from the state
         fn remove_identity(id: PassportId, id_type: IdentityType) {
             let mut types = <Identities<T>>::get(id);
             if id_type == IdentityType::Citizen {
@@ -182,13 +186,13 @@ pub mod pallet {
                 }
             }
         }
-
+        // funtion to check the identity by passport id
         fn check_id_identity(id: PassportId, id_type: IdentityType) -> bool {
             let types = <Identities<T>>::get(id);
             types.contains(&id_type)
         }
-
-        fn check_account_indetity(account: T::AccountId, id_type: IdentityType) -> bool {
+        // function to check the identity by account 
+        fn check_account_identity(account: T::AccountId, id_type: IdentityType) -> bool {
             match <PassportIds<T>>::get(account) {
                 Some(id) => Self::check_id_identity(id, id_type),
                 None => false,
@@ -206,14 +210,14 @@ pub trait IdentityTrait<T: Config> {
 
     fn check_id_identity(id: PassportId, id_type: IdentityType) -> bool;
 
-    fn check_account_indetity(account: T::AccountId, id_type: IdentityType) -> bool;
+    fn check_account_identity(account: T::AccountId, id_type: IdentityType) -> bool;
 }
 
 sp_api::decl_runtime_apis! {
     pub trait IdentityPalletApi<T: Config> {
         fn check_id_identity(id: PassportId, id_type: IdentityType) -> bool;
 
-        fn check_account_indetity(account: T::AccountId, id_type: IdentityType) -> bool;
+        fn check_account_identity(account: T::AccountId, id_type: IdentityType) -> bool;
     }
 }
 
