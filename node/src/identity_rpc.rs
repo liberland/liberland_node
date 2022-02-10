@@ -14,8 +14,8 @@ pub trait IdentityRpc {
     #[rpc(name = "check_id_identity")]
     fn check_id_identity(&self, id: PassportId, id_type: IdentityType) -> Result<bool>;
 
-    #[rpc(name = "check_account_indetity")]
-    fn check_account_indetity(&self, account: AccountId, id_type: IdentityType) -> Result<bool>;
+    #[rpc(name = "check_account_identity")]
+    fn check_account_identity(&self, account: AccountId, id_type: IdentityType) -> Result<bool>;
 }
 
 pub struct IdentityRpcImpl<C> {
@@ -36,11 +36,11 @@ where
         Ok(res)
     }
 
-    fn check_account_indetity(&self, account: AccountId, id_type: IdentityType) -> Result<bool> {
+    fn check_account_identity(&self, account: AccountId, id_type: IdentityType) -> Result<bool> {
         let api = self.client.runtime_api();
         let best_hash = BlockId::hash(self.client.info().best_hash);
         let res = api
-            .check_account_indetity(&best_hash, account, id_type)
+            .check_account_identity(&best_hash, account, id_type)
             .unwrap();
         Ok(res)
     }

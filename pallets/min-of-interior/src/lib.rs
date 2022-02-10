@@ -107,7 +107,7 @@ pub mod pallet {
             let sender = ensure_signed(origin)?;
 
             ensure!(
-                T::IdentityTrait::check_account_indetity(sender, IdentityType::MinisterOfInterior),
+                T::IdentityTrait::check_account_identity(sender, IdentityType::MinisterOfInterior),
                 <Error<T>>::AccountCannotProcessKyc
             );
 
@@ -134,7 +134,7 @@ pub mod pallet {
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
             ensure!(
-                T::IdentityTrait::check_account_indetity(sender.clone(), IdentityType::EResident),
+                T::IdentityTrait::check_account_identity(sender.clone(), IdentityType::EResident),
                 <Error<T>>::EresidenceNotFound
             );
             let pasport_id = pallet_identity::Pallet::<T>::passport_id(sender.clone()).unwrap();
@@ -149,7 +149,7 @@ pub mod pallet {
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
             ensure!(
-                T::IdentityTrait::check_account_indetity(sender, IdentityType::MinisterOfInterior),
+                T::IdentityTrait::check_account_identity(sender, IdentityType::MinisterOfInterior),
                 <Error<T>>::OnlyMinistryOfInteriorCall
             );
 
@@ -171,7 +171,7 @@ pub mod pallet {
             let sender = ensure_signed(origin)?;
 
             ensure!(
-                T::IdentityTrait::check_account_indetity(sender, IdentityType::MinisterOfInterior),
+                T::IdentityTrait::check_account_identity(sender, IdentityType::MinisterOfInterior),
                 <Error<T>>::OnlyMinistryOfInteriorCall
             );
             if approved {

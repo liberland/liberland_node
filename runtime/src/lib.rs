@@ -109,8 +109,8 @@ pub mod opaque {
 // To learn more about runtime versioning and what each of the following value means:
 //   https://substrate.dev/docs/en/knowledgebase/runtime/upgrades#runtime-versioning
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: create_runtime_str!("node-template"),
-    impl_name: create_runtime_str!("node-template"),
+    spec_name: create_runtime_str!("liberland-node"),
+    impl_name: create_runtime_str!("liberland-node"),
     authoring_version: 1,
     // The version of the runtime specification. A full node will not attempt to use its native
     //   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
@@ -735,8 +735,8 @@ impl_runtime_apis! {
             IdentityPallet::check_id_identity(id, id_type)
         }
 
-        fn check_account_indetity(account: AccountId, id_type: pallet_identity::IdentityType) -> bool {
-            IdentityPallet::check_account_indetity(account, id_type)
+        fn check_account_identity(account: AccountId, id_type: pallet_identity::IdentityType) -> bool {
+            IdentityPallet::check_account_identity(account, id_type)
         }
     }
 
