@@ -1,6 +1,9 @@
 [profile.release]
 panic = 'unwind'
 
+[package]
+rust-version = 
+
 [workspace]
 members = [
 	'node',
