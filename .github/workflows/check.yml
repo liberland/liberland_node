@@ -42,3 +42,17 @@ jobs:
 
       - name: Tests
         run: cargo test --all
+
+      - name: Build all 
+        run: | 
+          sh scripts/init.sh
+          cargo build --release --all-features
+
+      - name: Format 
+	run: |
+          cargo +nightly fmt --all -- --check
+
+
+
+
+
