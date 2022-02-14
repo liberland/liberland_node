@@ -138,8 +138,8 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 fn testnet_genesis(
     wasm_binary: &[u8],
     initial_authorities: Vec<(AccountId, AuraId, GrandpaId)>,
-    root_key: AccountId,
-    endowed_accounts: Vec<AccountId>,
+    root_key: AccountId, // root key for sudo pallet
+    endowed_accounts: Vec<AccountId>, // accounts with preloaded tokens
     _enable_println: bool,
 ) -> GenesisConfig {
     GenesisConfig {
@@ -148,9 +148,9 @@ fn testnet_genesis(
                 .iter()
                 .map(|x| {
                     (
-                        x.0.clone(),
-                        x.0.clone(),
-                        SessionKeys {
+                        x.0.clone(),  // account id 
+                        x.0.clone(),  // validator id
+                        SessionKeys { //session keys
                             grandpa: x.2.clone(),
                             aura: x.1.clone(),
                         },

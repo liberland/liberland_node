@@ -11,6 +11,7 @@ use pallet_grandpa::fg_primitives;
 use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+//pub use sp_consensus_babe::{AllowedSlots, AuthorityId, Slot};
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata, H256};
 use sp_runtime::traits::{
     AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, OpaqueKeys, Verify,
@@ -234,6 +235,14 @@ impl pallet_aura::Config for Runtime {
     type AuthorityId = AuraId;
 }
 
+
+/// The BABE epoch configuration at genesis.
+//pub const BABE_GENESIS_EPOCH_CONFIG: BabeEpochConfiguration = BabeEpochConfiguration {
+//	c: PRIMARY_PROBABILITY,
+//	allowed_slots: AllowedSlots::PrimaryAndSecondaryPlainSlots,
+//};
+
+
 impl pallet_grandpa::Config for Runtime {
     type Event = Event;
     type Call = Call;
@@ -260,7 +269,7 @@ parameter_types! {
 impl pallet_timestamp::Config for Runtime {
     /// A timestamp: milliseconds since the unix epoch.
     type Moment = u64;
-    type OnTimestampSet = Aura;
+    type OnTimestampSet = Aura; // Babe
     type MinimumPeriod = MinimumPeriod;
     type WeightInfo = ();
 }
@@ -662,6 +671,50 @@ impl_runtime_apis! {
             Aura::authorities()
         }
     }
+
+//	impl sp_consensus_babe::BabeApi<Block> for Runtime {
+//        fn configuration() -> sp_consensus_babe::BabeGenesisConfiguration {
+//            sp_consensus_babe::BabeGenesisConfiguration {
+//                slot_duration: 1000,
+//                epoch_length: EpochDuration::get(),
+//                c: (3, 10),
+//                    genesis_authorities: system::authorities()
+//                        .into_iter().map(|x|(x, 1)).collect(),
+//                    randomness: <pallet_babe::Pallet<Runtime>>::randomness(),
+//                    allowed_slots: AllowedSlots::PrimaryAndSecondaryPlainSlots,
+//                }
+//            }
+
+//            fn current_epoch_start() -> Slot {
+//                <pallet_babe::Pallet<Runtime>>::current_epoch_start()
+//            }
+
+//            fn current_epoch() -> sp_consensus_babe::Epoch {
+//                <pallet_babe::Pallet<Runtime>>::current_epoch()
+//            }
+
+//            fn next_epoch() -> sp_consensus_babe::Epoch {
+//                <pallet_babe::Pallet<Runtime>>::next_epoch()
+//            }
+
+ //           fn submit_report_equivocation_unsigned_extrinsic(
+ //               _equivocation_proof: sp_consensus_babe::EquivocationProof<
+ //                   <Block as BlockT>::Header,
+ //               >,
+//                _key_owner_proof: sp_consensus_babe::OpaqueKeyOwnershipProof,
+ //           ) -> Option<()> {
+//                None
+//            }
+
+//            fn generate_key_ownership_proof(
+//                _slot: sp_consensus_babe::Slot,
+ //               _authority_id: sp_consensus_babe::AuthorityId,
+//            ) -> Option<sp_consensus_babe::OpaqueKeyOwnershipProof> {
+//                None
+//            }
+//        }
+
+
 
     impl sp_session::SessionKeys<Block> for Runtime {
         fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
