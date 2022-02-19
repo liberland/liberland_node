@@ -212,7 +212,7 @@ pub mod pallet {
         pub fn vote(origin: OriginFor<T>, ballot: AltVote) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
             ensure!(
-                T::IdentTrait::check_account_indetity(sender.clone(), IdentityType::Citizen),
+                T::IdentTrait::check_account_identity(sender.clone(), IdentityType::Citizen),
                 <Error<T>>::AccountCannotVote
             );
             //this unwrap() is correct
@@ -244,7 +244,7 @@ pub mod pallet {
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
             ensure!(
-                T::IdentTrait::check_account_indetity(sender.clone(), IdentityType::Assembly),
+                T::IdentTrait::check_account_identity(sender.clone(), IdentityType::Assembly),
                 <Error<T>>::AccountCannotVote
             );
             //this unwrap() is correct
@@ -315,7 +315,7 @@ pub mod pallet {
                 <Error<T>>::LifeTimeIsLessThanLaws
             );
             ensure!(
-                T::IdentTrait::check_account_indetity(sender, IdentityType::Assembly),
+                T::IdentTrait::check_account_identity(sender, IdentityType::Assembly),
                 <Error<T>>::AccountCannotProposeLaw
             );
             T::VotingTrait::create_voting(
@@ -341,7 +341,7 @@ pub mod pallet {
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
             ensure!(
-                T::IdentTrait::check_account_indetity(sender.clone(), IdentityType::Assembly),
+                T::IdentTrait::check_account_identity(sender.clone(), IdentityType::Assembly),
                 <Error<T>>::AccountCannotVote
             );
 
@@ -376,7 +376,7 @@ pub mod pallet {
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
             ensure!(
-                T::IdentTrait::check_account_indetity(sender.clone(), IdentityType::Citizen),
+                T::IdentTrait::check_account_identity(sender.clone(), IdentityType::Citizen),
                 <Error<T>>::AccountCannotSupport
             );
             let assemblies = <CurrentAssembliesList<T>>::get();

@@ -100,7 +100,7 @@ pub mod pallet {
             let sender = ensure_signed(origin)?;
 
             ensure!(
-                T::IdentityTrait::check_account_indetity(sender, IdentityType::Citizen),
+                T::IdentityTrait::check_account_identity(sender, IdentityType::Citizen),
                 <Error<T>>::AccountCannotSuggestPetition,
             );
 
@@ -120,7 +120,7 @@ pub mod pallet {
             let sender = ensure_signed(origin)?;
 
             ensure!(
-                T::IdentityTrait::check_account_indetity(sender.clone(), IdentityType::Citizen),
+                T::IdentityTrait::check_account_identity(sender.clone(), IdentityType::Citizen),
                 <Error<T>>::AccountCannotVote,
             );
 
