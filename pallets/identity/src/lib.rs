@@ -109,7 +109,6 @@ pub mod pallet {
 	    for (accountid, id) in self.assembly_members.iter() {
 
                 <Pallet<T>>::match_account_to_id(accountid.clone(), *id); //insert passport
-//		let tmp_passport_id = <PassportIds<T>>::get(id).unwrap();//not safe
                 <Pallet<T>>::push_identity(*id, IdentityType::Assembly).unwrap(); // create user 
             }
 
@@ -135,9 +134,6 @@ pub mod pallet {
             });
         }
 
-//	fn account_to_passport(id: AccountId) -> PassportId {
-
-//	}
 
         fn push_identity(id: PassportId, id_type: IdentityType) -> Result<(), &'static str> {
             match id_type {
