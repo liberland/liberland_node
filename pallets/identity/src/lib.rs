@@ -83,6 +83,7 @@ pub mod pallet {
     pub struct GenesisConfig<T: Config> {
         pub citizens: Vec<(T::AccountId, PassportId)>,
         pub reviewers: Vec<PassportId>,
+	pub assembly_members: Vec<(T::AccountId, PassportId)>,
     }
 
     #[cfg(feature = "std")]
@@ -91,6 +92,7 @@ pub mod pallet {
             Self {
                 reviewers: Default::default(),
                 citizens: Default::default(),
+		assembly_members: Default::default(),
             }
         }
     }
@@ -103,6 +105,14 @@ pub mod pallet {
                 <Pallet<T>>::match_account_to_id(account.clone(), *id);
                 <Pallet<T>>::push_identity(*id, IdentityType::Citizen).unwrap();
             }
+
+	    for (accountid, id) in self.assembly_members.iter() {
+
+                <Pallet<T>>::match_account_to_id(accountid.clone(), *id); //insert passport
+//		let tmp_passport_id = <PassportIds<T>>::get(id).unwrap();//not safe
+                <Pallet<T>>::push_identity(*id, IdentityType::Assembly).unwrap(); // create user 
+            }
+
             for id in self.reviewers.iter() {
                 <Pallet<T>>::push_identity(*id, IdentityType::MinisterOfInterior).unwrap();
             }
@@ -125,6 +135,10 @@ pub mod pallet {
             });
         }
 
+//	fn account_to_passport(id: AccountId) -> PassportId {
+
+//	}
+
         fn push_identity(id: PassportId, id_type: IdentityType) -> Result<(), &'static str> {
             match id_type {
                 IdentityType::EResident => {
@@ -135,6 +149,22 @@ pub mod pallet {
                         Ok(())
                     } else {
                         Err("Citizen cannot become the Eresidence at the same time")
+                    }
+                }
+
+
+                IdentityType::Assembly => {
+                    let mut types = <Identities<T>>::get(id);
+                    if !types.contains(&IdentityType::Assembly) {
+                        types.insert(id_type);
+                        let id_2 = <Identities<T>>::iter().find(|item| item.0 == id);
+                        <Identities<T>>::insert(id, types);
+                        if id_2.is_none() {
+                            <CitizensAmount<T>>::mutate(|res| *res += 1);
+                        }
+                        Ok(())
+                    } else {
+                        Err("Assembly members cannot become the Citizen at the same time")
                     }
                 }
                 IdentityType::Citizen => {
