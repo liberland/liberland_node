@@ -113,7 +113,7 @@ The applicant has added this information to their profile, notice that there are
 ```
 
 ### Applicant calls `requestJudgement` 
-Applicant specifies that they are seeking a judgement from a specific Registrar, etc. the KYC Agency
+Applicant specifies that they are seeking a judgement from the Minister of Interior.
 ```bash
 polkadot-js-api --ws wss://n1.hashed.systems tx.identity.requestJudgement 1 500 --seed "bargain album current caught tragic slab identify squirrel embark black drip imitate"
 ```
