@@ -23,7 +23,7 @@ pub mod pallet {
     #[pallet::config]
     pub trait Config:
         frame_system::Config
-        + pallet_identity::Config
+        // + pallet_identity::Config
         + pallet_voting::Config
         + pallet_staking::Config
     {
@@ -211,6 +211,8 @@ pub mod pallet {
         #[pallet::weight(1)]
         pub fn vote(origin: OriginFor<T>, ballot: AltVote) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
+            // IDENTITY-PALLET-TRANSITION
+            // TODO: check account is a citizen
             ensure!(
                 T::IdentTrait::check_account_identity(sender.clone(), IdentityType::Citizen),
                 <Error<T>>::AccountCannotVote

@@ -50,8 +50,8 @@ pub use pallet_assembly;
 /// Import the Liberland pallets.
 pub use pallet_documentation;
 pub use pallet_identity;
-use pallet_identity::IdentityTrait;
-pub use pallet_min_interior;
+// use pallet_identity::IdentityTrait;
+// pub use pallet_min_interior;
 pub use pallet_prime_minister;
 pub use pallet_referendum;
 pub use pallet_staking;
@@ -298,19 +298,44 @@ impl pallet_sudo::Config for Runtime {
     type Call = Call;
 }
 
-/// Configure the pallet-identity in pallets/identity.
-impl pallet_identity::Config for Runtime {}
-
 parameter_types! {
-    // 72 hours
-    pub const RequestBlockNummber: u32 = 72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+    // Minimum 100 bytes/KSM deposited (1 CENT/byte)
+    pub const BasicDeposit: Balance = 1000 * CENTS;       // 258 bytes on-chain
+    pub const FieldDeposit: Balance = 250 * CENTS;        // 66 bytes on-chain
+    pub const SubAccountDeposit: Balance = 200 * CENTS;   // 53 bytes on-chain
+    pub const MaxSubAccounts: u32 = 100;
+    pub const MaxAdditionalFields: u32 = 100;
+    pub const MaxRegistrars: u32 = 20;
 }
-/// Configure the pallet-kyc in pallets/kyc.
-impl pallet_min_interior::Config for Runtime {
-    // 72 hours
-    type RequestBlockNummber = RequestBlockNummber;
-    type IdentityTrait = IdentityPallet;
+
+impl pallet_identity::Config for Runtime {
+    type Event = Event;
+    type Currency = Balances;
+    type BasicDeposit = BasicDeposit;
+    type FieldDeposit = FieldDeposit;
+    type SubAccountDeposit = SubAccountDeposit;
+    type MaxSubAccounts = MaxSubAccounts;
+    type MaxAdditionalFields = MaxAdditionalFields;
+    type MaxRegistrars = MaxRegistrars;
+    type Slashed = Treasury;
+    type ForceOrigin = EnsureRoot<AccountId>;
+    type RegistrarOrigin = EnsureRoot<AccountId>;
+    type WeightInfo = ();
 }
+
+// /// Configure the pallet-identity in pallets/identity.
+// impl pallet_identity::Config for Runtime {}
+
+// parameter_types! {
+//     // 72 hours
+//     pub const RequestBlockNummber: u32 = 72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+// }
+// /// Configure the pallet-kyc in pallets/kyc.
+// impl pallet_min_interior::Config for Runtime {
+//     // 72 hours
+//     type RequestBlockNummber = RequestBlockNummber;
+//     type IdentityTrait = IdentityPallet;
+// }
 /// Configure the pallet-voting in pallets/voting.
 impl pallet_voting::Config for Runtime {
     type FinalizeVotingDispatch = (ReferendumPallet, AssemblyPallet);
@@ -548,8 +573,8 @@ construct_runtime!(
         Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
         ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned},
         // Liberland pallets
-        IdentityPallet: pallet_identity::{Pallet, Call, Config<T>, Storage},
-        MinInteriorPallet: pallet_min_interior::{Pallet, Call, Storage},
+        IdentityPallet: pallet_identity, //::{Pallet, Call, Storage, Config<T>, Storage},
+        // MinInteriorPallet: pallet_min_interior::{Pallet, Call, Storage},
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
         ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
         DocumentationPallet: pallet_documentation::{Pallet, Call, Storage},

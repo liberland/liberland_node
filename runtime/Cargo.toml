@@ -50,9 +50,11 @@ pallet-staking-reward-curve = {default-features = false, version = '3.0.0', git 
 pallet-election-provider-multi-phase = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
 sp-npos-elections = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
 
+pallet-identity = {default-features = false, version = '3.0.0', git = 'https://github.com/paritytech/substrate.git', tag = 'monthly-2021-05'}
+
 # local dependencies
-pallet-identity = {default-features = false, version = '1.0.0', path = '../pallets/identity'}
-pallet-min-interior = {default-features = false, version = '1.0.0', path = '../pallets/min-of-interior'}
+# pallet-identity = {default-features = false, version = '1.0.0', path = '../pallets/identity'}
+# pallet-min-interior = {default-features = false, version = '1.0.0', path = '../pallets/min-of-interior'}
 pallet-voting = {default-features = false, version = '1.0.0', path = '../pallets/voting'}
 pallet-referendum = {default-features = false, version = '1.0.0', path = '../pallets/referendum'}
 pallet-documentation = {default-features = false, version = '1.0.0', path = '../pallets/documentation'}
@@ -69,8 +71,8 @@ runtime-benchmarks = [
 	'frame-system/runtime-benchmarks',
 	'hex-literal',
 	'pallet-balances/runtime-benchmarks',
-	'pallet-identity/runtime-benchmarks',
-	'pallet-min-interior/runtime-benchmarks',
+	# 'pallet-identity/runtime-benchmarks',
+	# 'pallet-min-interior/runtime-benchmarks',
 	'pallet-voting/runtime-benchmarks',
 	'pallet-referendum/runtime-benchmarks',
 	'pallet-documentation/runtime-benchmarks',
@@ -90,7 +92,7 @@ std = [
 	'pallet-randomness-collective-flip/std',
 	'pallet-sudo/std',
 	'pallet-identity/std',
-	'pallet-min-interior/std',
+	# 'pallet-min-interior/std',
 	'pallet-voting/std',
 	'pallet-referendum/std',
 	'pallet-documentation/std',
