@@ -17,7 +17,7 @@ jobs:
     # The type of runner that the job will run on
     # runs-on: ubuntu-20.04
     # Start jobs on self-hosted runners
-    runs-on: self-hosted
+    runs-on: ubuntu-18.04 #self-hosted
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
