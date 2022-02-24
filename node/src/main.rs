@@ -6,8 +6,8 @@ mod chain_spec;
 mod service;
 mod cli;
 mod command;
-mod identity_rpc;
-mod min_interior_rpc;
+// mod identity_rpc;
+// mod min_interior_rpc;
 mod referendum_rpc;
 mod rpc;
 

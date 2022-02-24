@@ -317,7 +317,7 @@ impl pallet_identity::Config for Runtime {
     type MaxSubAccounts = MaxSubAccounts;
     type MaxAdditionalFields = MaxAdditionalFields;
     type MaxRegistrars = MaxRegistrars;
-    type Slashed = Treasury;
+    type Slashed = ();
     type ForceOrigin = EnsureRoot<AccountId>;
     type RegistrarOrigin = EnsureRoot<AccountId>;
     type WeightInfo = ();
@@ -354,7 +354,7 @@ impl pallet_referendum::Config for Runtime {
     type PetitionDuration = PetitionDuration;
     // 72 hours
     type ReferendumDuration = ReferendumDuration;
-    type IdentityTrait = IdentityPallet;
+    // type IdentityTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
 }
 
@@ -362,7 +362,7 @@ impl pallet_referendum::Config for Runtime {
 impl pallet_documentation::Config for Runtime {}
 
 impl pallet_prime_minister::Config for Runtime {
-    type IdentityTrait = IdentityPallet;
+    // type IdentityTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
 }
 
@@ -406,7 +406,7 @@ impl pallet_assembly::Config for Runtime {
     type AssemblyVotingHash = AssemblyVotingHash;
     type WinnersAmount = WinnersAmount;
 
-    type IdentTrait = IdentityPallet;
+    // type IdentTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
     type StakingTrait = StakingPallet;
     type PrimeMinVotingDuration = PrimeMinVotingDuration;
@@ -573,7 +573,7 @@ construct_runtime!(
         Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
         ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned},
         // Liberland pallets
-        IdentityPallet: pallet_identity, //::{Pallet, Call, Storage, Config<T>, Storage},
+        IdentityPallet: pallet_identity::{Pallet, Call, Storage, Event<T>},
         // MinInteriorPallet: pallet_min_interior::{Pallet, Call, Storage},
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
         ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
@@ -749,21 +749,21 @@ impl_runtime_apis! {
 
     // Liberland runtime apis
 
-    impl pallet_min_interior::MinInteriorPalletApi<Block, Runtime> for Runtime {
-        fn get_all_requests() -> BTreeSet<pallet_min_interior::KycRequest<AccountId>> {
-            MinInteriorPallet::get_all_requests()
-        }
-    }
+    // impl pallet_min_interior::MinInteriorPalletApi<Block, Runtime> for Runtime {
+    //     fn get_all_requests() -> BTreeSet<pallet_min_interior::KycRequest<AccountId>> {
+    //         MinInteriorPallet::get_all_requests()
+    //     }
+    // }
 
-    impl pallet_identity::IdentityPalletApi<Block, Runtime> for Runtime {
-        fn check_id_identity(id: pallet_identity::PassportId, id_type: pallet_identity::IdentityType) -> bool {
-            IdentityPallet::check_id_identity(id, id_type)
-        }
+    // impl pallet_identity::IdentityPalletApi<Block, Runtime> for Runtime {
+    //     fn check_id_identity(id: pallet_identity::PassportId, id_type: pallet_identity::IdentityType) -> bool {
+    //         IdentityPallet::check_id_identity(id, id_type)
+    //     }
 
-        fn check_account_identity(account: AccountId, id_type: pallet_identity::IdentityType) -> bool {
-            IdentityPallet::check_account_identity(account, id_type)
-        }
-    }
+    //     fn check_account_identity(account: AccountId, id_type: pallet_identity::IdentityType) -> bool {
+    //         IdentityPallet::check_account_identity(account, id_type)
+    //     }
+    // }
 
     impl pallet_referendum::ReferendumPalletApi<Block, Runtime> for Runtime {
         fn get_active_petitions() -> BTreeMap<Hash, pallet_referendum::Suggestion> {

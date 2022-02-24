@@ -1,7 +1,6 @@
 use liberland_node_runtime::{
     opaque::SessionKeys, AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
-    IdentityPalletConfig, SessionConfig, Signature, StakingPalletConfig, SudoConfig, SystemConfig,
-    WASM_BINARY,
+    SessionConfig, Signature, StakingPalletConfig, SudoConfig, SystemConfig, WASM_BINARY,
 };
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -169,103 +168,102 @@ fn testnet_genesis(
             ..Default::default()
         },
         // Liberland config
-        pallet_identity: IdentityPalletConfig {
-            // TODO: add a constant variable
-            citizens: vec![
-                (
-                    get_account_id_from_seed::<sr25519::Public>("Alice"),
-                    [
-                        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5G3uZjEpvNAQ6U2eUjnMb66B8g6d8wyB68x6CfkRPNcno8eR")
-                        .unwrap(),
-                    [
-                        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5Ct2J6wD3NHqicz9LdiyYwHWMHLwSa4YrndYJtr6fAKRJJvT")
-                        .unwrap(),
-                    [
-                        3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5FX5sQnbXXN9A1fM7PkSvwYU33NotLuNamM4Gjoht2vZZgBj")
-                        .unwrap(),
-                    [
-                        4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5Ge179zgEVKbxYZ64L7Jkg7Li2Cw7bg5yAGWXqacoYS561xG")
-                        .unwrap(),
-                    [
-                        5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5EppCbmVvdjGoEU9nPzMEv5GmZGdfuBDHVZTg4nZvpe8S2SZ")
-                        .unwrap(),
-                    [
-                        6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5HVSKFnWm29YfFvPt3DVdHcknSzcwhFspFijHRYTFxodGs47")
-                        .unwrap(),
-                    [
-                        7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5DXqJcioMQ8bVznqhAySoB5Yit1YcsFrrJmjKW9bRtXvpcEd")
-                        .unwrap(),
-                    [
-                        8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5FnhdLrXpChsDAN82NWNz1htFnnp84cbVBx5ZmfTLip5Fo2p")
-                        .unwrap(),
-                    [
-                        9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5DLruQutYoajW9wXNipscCAGi1Gzx9ovrA7f6MayScKstobz")
-                        .unwrap(),
-                    [
-                        10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-                (
-                    AccountId::from_str("5E4UzjgcNeCZCFTBbUhfTknM6qEGPKEmomCajQNLcYbzbq7x")
-                        .unwrap(),
-                    [
-                        11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0,
-                    ],
-                ),
-            ],
-            reviewers: vec![[
-                1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0,
-            ]],
-        },
-
+        // pallet_identity: IdentityPalletConfig {
+        //     // TODO: add a constant variable
+        //     citizens: vec![
+        //         (
+        //             get_account_id_from_seed::<sr25519::Public>("Alice"),
+        //             [
+        //                 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5G3uZjEpvNAQ6U2eUjnMb66B8g6d8wyB68x6CfkRPNcno8eR")
+        //                 .unwrap(),
+        //             [
+        //                 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5Ct2J6wD3NHqicz9LdiyYwHWMHLwSa4YrndYJtr6fAKRJJvT")
+        //                 .unwrap(),
+        //             [
+        //                 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5FX5sQnbXXN9A1fM7PkSvwYU33NotLuNamM4Gjoht2vZZgBj")
+        //                 .unwrap(),
+        //             [
+        //                 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5Ge179zgEVKbxYZ64L7Jkg7Li2Cw7bg5yAGWXqacoYS561xG")
+        //                 .unwrap(),
+        //             [
+        //                 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5EppCbmVvdjGoEU9nPzMEv5GmZGdfuBDHVZTg4nZvpe8S2SZ")
+        //                 .unwrap(),
+        //             [
+        //                 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5HVSKFnWm29YfFvPt3DVdHcknSzcwhFspFijHRYTFxodGs47")
+        //                 .unwrap(),
+        //             [
+        //                 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5DXqJcioMQ8bVznqhAySoB5Yit1YcsFrrJmjKW9bRtXvpcEd")
+        //                 .unwrap(),
+        //             [
+        //                 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5FnhdLrXpChsDAN82NWNz1htFnnp84cbVBx5ZmfTLip5Fo2p")
+        //                 .unwrap(),
+        //             [
+        //                 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5DLruQutYoajW9wXNipscCAGi1Gzx9ovrA7f6MayScKstobz")
+        //                 .unwrap(),
+        //             [
+        //                 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //         (
+        //             AccountId::from_str("5E4UzjgcNeCZCFTBbUhfTknM6qEGPKEmomCajQNLcYbzbq7x")
+        //                 .unwrap(),
+        //             [
+        //                 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //                 0, 0, 0, 0, 0, 0, 0,
+        //             ],
+        //         ),
+        //     ],
+        //     reviewers: vec![[
+        //         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //         0, 0, 0, 0,
+        //     ]],
+        // },
         frame_system: SystemConfig {
             // Add Wasm runtime to storage.
             code: wasm_binary.to_vec(),
