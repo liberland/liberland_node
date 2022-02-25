@@ -1,6 +1,6 @@
 [package]
 authors = ['LiberLand <https://github.com/liberland/liberland_node>']
-edition = '2018'
+edition = '2021'
 homepage = 'https://liberland.org'
 license = 'Unlicense'
 name = 'liberland-node-runtime'
