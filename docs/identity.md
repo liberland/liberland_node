@@ -8,20 +8,20 @@ set ADDR="5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym"
 
 ### Check if Address has an Identity
 ```
-polkadot-js-api --ws wss://n1.hashed.systems query.identity.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
+polkadot-js-api --ws ws://159.65.203.73:9949 query.identityPallet.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
 ```
 If you see results, run the `clearIdentity` command below
 
 ### Clear Identity
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems tx.identity.clearIdentity --seed "bargain album current caught tragic slab identify squirrel embark black drip imitate"
+polkadot-js-api --ws ws://159.65.203.73:9949 tx.identityPallet.clearIdentity --seed "bargain album current caught tragic slab identify squirrel embark black drip imitate"
 ```
 
 ### Set Identity
 The `additional` field of `EResident` == 1 is the respresentation that this account/identity desires to apply/become an eResident or Citizen.
 
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems tx.identity.setIdentity '{
+polkadot-js-api --ws ws://159.65.203.73:9949 tx.identityPallet.setIdentity '{
     "display": {
         "Raw": "Steve Harvey"
     },
@@ -51,7 +51,7 @@ polkadot-js-api --ws wss://n1.hashed.systems tx.identity.setIdentity '{
 
 #### Check the list of registrars
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems query.identity.registrars 
+polkadot-js-api --ws ws://159.65.203.73:9949 query.identityPallet.registrars 
 ```
 ```json
 {
@@ -72,7 +72,7 @@ polkadot-js-api --ws wss://n1.hashed.systems query.identity.registrars
 
 ### Query the identity again 
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems query.identity.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
+polkadot-js-api --ws ws://159.65.203.73:9949 query.identityPallet.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
 ```
 The applicant has added this information to their profile, notice that there are no judgements 
 ```json
@@ -115,12 +115,12 @@ The applicant has added this information to their profile, notice that there are
 ### Applicant calls `requestJudgement` 
 Applicant specifies that they are seeking a judgement from the Minister of Interior.
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems tx.identity.requestJudgement 1 500 --seed "bargain album current caught tragic slab identify squirrel embark black drip imitate"
+polkadot-js-api --ws ws://159.65.203.73:9949 tx.identityPallet.requestJudgement 1 500 --seed "bargain album current caught tragic slab identify squirrel embark black drip imitate"
 ```
 
 ### Query to see Judgement Awaiting Review
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems query.identity.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
+polkadot-js-api --ws ws://159.65.203.73:9949 query.identityPallet.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
 ```
 ```json
   "identityOf": {
@@ -145,14 +145,14 @@ Parameters are `RegistrarIndex`, the `AccountId` to judge, and one from a list o
 `KnownGood` indicates fully approved (in this example, as an `EResident`), although we can likely override the above enum.
 
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems tx.identity.provideJudgement 1 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym KnownGood --seed "exercise museum credit crystal various nature defy human cable any split help"
+polkadot-js-api --ws ws://159.65.203.73:9949 tx.identityPallet.provideJudgement 1 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym KnownGood --seed "exercise museum credit crystal various nature defy human cable any split help"
 ```
 
 ### Check the Identity
 The indication that an account is an `EResident` is that they have a `judgement` with a value of `[1,KnownGood]` and an additional field of `EResident` set to a value of `1`.
 
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems query.identity.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
+polkadot-js-api --ws ws://159.65.203.73:9949 query.identityPallet.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
 ```
 
 ```json
@@ -202,7 +202,7 @@ If the `AccountId`, now `EResident` changes any of their Identity information, t
 ### Call `setIdentity` again
 Let's say that Steve's key is compromised and an Evil Steve wants to capture his communications as an EResident user. Once he changes the Identity data, he must request a new judgement and the process repeats.
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems tx.identity.setIdentity '{
+polkadot-js-api --ws ws://159.65.203.73:9949 tx.identityPallet.setIdentity '{
     "display": {
         "Raw": "Evil Steve Harvey"
     },
@@ -228,7 +228,7 @@ polkadot-js-api --ws wss://n1.hashed.systems tx.identity.setIdentity '{
 ### Query Identity again
 The new data is saved but the Judgement has been erased. 
 ```bash
-polkadot-js-api --ws wss://n1.hashed.systems query.identity.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
+polkadot-js-api --ws ws://159.65.203.73:9949 query.identityPallet.identityOf 5HGZfBpqUUqGY7uRCYA6aRwnRHJVhrikn8to31GcfNcifkym
 {
   "identityOf": {
     "judgements": [],
