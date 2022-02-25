@@ -50,8 +50,8 @@ pub use pallet_assembly;
 /// Import the Liberland pallets.
 pub use pallet_documentation;
 pub use pallet_identity;
-use pallet_identity::IdentityTrait;
-pub use pallet_min_interior;
+// use pallet_identity::IdentityTrait;
+// pub use pallet_min_interior;
 pub use pallet_prime_minister;
 pub use pallet_referendum;
 pub use pallet_staking;
@@ -109,8 +109,8 @@ pub mod opaque {
 // To learn more about runtime versioning and what each of the following value means:
 //   https://substrate.dev/docs/en/knowledgebase/runtime/upgrades#runtime-versioning
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: create_runtime_str!("node-template"),
-    impl_name: create_runtime_str!("node-template"),
+    spec_name: create_runtime_str!("liberland-node"),
+    impl_name: create_runtime_str!("liberland-node"),
     authoring_version: 1,
     // The version of the runtime specification. A full node will not attempt to use its native
     //   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
@@ -298,19 +298,44 @@ impl pallet_sudo::Config for Runtime {
     type Call = Call;
 }
 
-/// Configure the pallet-identity in pallets/identity.
-impl pallet_identity::Config for Runtime {}
-
 parameter_types! {
-    // 72 hours
-    pub const RequestBlockNummber: u32 = 72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+    // Minimum 100 bytes/KSM deposited (1 CENT/byte)
+    pub const BasicDeposit: Balance = 1000 * CENTS;       // 258 bytes on-chain
+    pub const FieldDeposit: Balance = 250 * CENTS;        // 66 bytes on-chain
+    pub const SubAccountDeposit: Balance = 200 * CENTS;   // 53 bytes on-chain
+    pub const MaxSubAccounts: u32 = 100;
+    pub const MaxAdditionalFields: u32 = 100;
+    pub const MaxRegistrars: u32 = 20;
 }
-/// Configure the pallet-kyc in pallets/kyc.
-impl pallet_min_interior::Config for Runtime {
-    // 72 hours
-    type RequestBlockNummber = RequestBlockNummber;
-    type IdentityTrait = IdentityPallet;
+
+impl pallet_identity::Config for Runtime {
+    type Event = Event;
+    type Currency = Balances;
+    type BasicDeposit = BasicDeposit;
+    type FieldDeposit = FieldDeposit;
+    type SubAccountDeposit = SubAccountDeposit;
+    type MaxSubAccounts = MaxSubAccounts;
+    type MaxAdditionalFields = MaxAdditionalFields;
+    type MaxRegistrars = MaxRegistrars;
+    type Slashed = ();
+    type ForceOrigin = EnsureRoot<AccountId>;
+    type RegistrarOrigin = EnsureRoot<AccountId>;
+    type WeightInfo = ();
 }
+
+// /// Configure the pallet-identity in pallets/identity.
+// impl pallet_identity::Config for Runtime {}
+
+// parameter_types! {
+//     // 72 hours
+//     pub const RequestBlockNummber: u32 = 72 * 60 * 60 * 1000 / MILLISECS_PER_BLOCK as BlockNumber;
+// }
+// /// Configure the pallet-kyc in pallets/kyc.
+// impl pallet_min_interior::Config for Runtime {
+//     // 72 hours
+//     type RequestBlockNummber = RequestBlockNummber;
+//     type IdentityTrait = IdentityPallet;
+// }
 /// Configure the pallet-voting in pallets/voting.
 impl pallet_voting::Config for Runtime {
     type FinalizeVotingDispatch = (ReferendumPallet, AssemblyPallet);
@@ -329,7 +354,7 @@ impl pallet_referendum::Config for Runtime {
     type PetitionDuration = PetitionDuration;
     // 72 hours
     type ReferendumDuration = ReferendumDuration;
-    type IdentityTrait = IdentityPallet;
+    // type IdentityTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
 }
 
@@ -337,7 +362,7 @@ impl pallet_referendum::Config for Runtime {
 impl pallet_documentation::Config for Runtime {}
 
 impl pallet_prime_minister::Config for Runtime {
-    type IdentityTrait = IdentityPallet;
+    // type IdentityTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
 }
 
@@ -381,7 +406,7 @@ impl pallet_assembly::Config for Runtime {
     type AssemblyVotingHash = AssemblyVotingHash;
     type WinnersAmount = WinnersAmount;
 
-    type IdentTrait = IdentityPallet;
+    // type IdentTrait = IdentityPallet;
     type VotingTrait = VotingPallet;
     type StakingTrait = StakingPallet;
     type PrimeMinVotingDuration = PrimeMinVotingDuration;
@@ -548,8 +573,8 @@ construct_runtime!(
         Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
         ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned},
         // Liberland pallets
-        IdentityPallet: pallet_identity::{Pallet, Call, Config<T>, Storage},
-        MinInteriorPallet: pallet_min_interior::{Pallet, Call, Storage},
+        IdentityPallet: pallet_identity::{Pallet, Call, Storage, Event<T>},
+        // MinInteriorPallet: pallet_min_interior::{Pallet, Call, Storage},
         VotingPallet: pallet_voting::{Pallet, Call, Storage},
         ReferendumPallet: pallet_referendum::{Pallet, Call, Storage},
         DocumentationPallet: pallet_documentation::{Pallet, Call, Storage},
@@ -724,21 +749,21 @@ impl_runtime_apis! {
 
     // Liberland runtime apis
 
-    impl pallet_min_interior::MinInteriorPalletApi<Block, Runtime> for Runtime {
-        fn get_all_requests() -> BTreeSet<pallet_min_interior::KycRequest<AccountId>> {
-            MinInteriorPallet::get_all_requests()
-        }
-    }
+    // impl pallet_min_interior::MinInteriorPalletApi<Block, Runtime> for Runtime {
+    //     fn get_all_requests() -> BTreeSet<pallet_min_interior::KycRequest<AccountId>> {
+    //         MinInteriorPallet::get_all_requests()
+    //     }
+    // }
 
-    impl pallet_identity::IdentityPalletApi<Block, Runtime> for Runtime {
-        fn check_id_identity(id: pallet_identity::PassportId, id_type: pallet_identity::IdentityType) -> bool {
-            IdentityPallet::check_id_identity(id, id_type)
-        }
+    // impl pallet_identity::IdentityPalletApi<Block, Runtime> for Runtime {
+    //     fn check_id_identity(id: pallet_identity::PassportId, id_type: pallet_identity::IdentityType) -> bool {
+    //         IdentityPallet::check_id_identity(id, id_type)
+    //     }
 
-        fn check_account_indetity(account: AccountId, id_type: pallet_identity::IdentityType) -> bool {
-            IdentityPallet::check_account_indetity(account, id_type)
-        }
-    }
+    //     fn check_account_identity(account: AccountId, id_type: pallet_identity::IdentityType) -> bool {
+    //         IdentityPallet::check_account_identity(account, id_type)
+    //     }
+    // }
 
     impl pallet_referendum::ReferendumPalletApi<Block, Runtime> for Runtime {
         fn get_active_petitions() -> BTreeMap<Hash, pallet_referendum::Suggestion> {

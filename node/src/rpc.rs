@@ -7,12 +7,11 @@
 
 use std::sync::Arc;
 
-use crate::identity_rpc;
-use crate::min_interior_rpc;
+// use crate::identity_rpc;
+// use crate::min_interior_rpc;
 use crate::referendum_rpc;
 use liberland_node_runtime::{
-    opaque::Block, pallet_identity::IdentityPalletApi, pallet_min_interior::MinInteriorPalletApi,
-    pallet_referendum::ReferendumPalletApi, AccountId, Balance, Index, Runtime,
+    opaque::Block, pallet_referendum::ReferendumPalletApi, AccountId, Balance, Index, Runtime,
 };
 pub use sc_rpc_api::DenyUnsafe;
 use sp_api::ProvideRuntimeApi;
@@ -39,8 +38,8 @@ where
     C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
     C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
     C::Api: BlockBuilder<Block>,
-    C::Api: MinInteriorPalletApi<Block, Runtime>,
-    C::Api: IdentityPalletApi<Block, Runtime>,
+    // C::Api: MinInteriorPalletApi<Block, Runtime>,
+    // C::Api: IdentityPalletApi<Block, Runtime>,
     C::Api: ReferendumPalletApi<Block, Runtime>,
     P: TransactionPool + 'static,
 {
@@ -65,17 +64,17 @@ where
     )));
 
     // Liberland rpc functions
-    io.extend_with(identity_rpc::IdentityRpc::to_delegate(
-        identity_rpc::IdentityRpcImpl {
-            client: client.clone(),
-        },
-    ));
+    // io.extend_with(identity_rpc::IdentityRpc::to_delegate(
+    //     identity_rpc::IdentityRpcImpl {
+    //         client: client.clone(),
+    //     },
+    // ));
 
-    io.extend_with(min_interior_rpc::MinInteriorRpc::to_delegate(
-        min_interior_rpc::MinInteriorRpcImpl {
-            client: client.clone(),
-        },
-    ));
+    // io.extend_with(min_interior_rpc::MinInteriorRpc::to_delegate(
+    //     min_interior_rpc::MinInteriorRpcImpl {
+    //         client: client.clone(),
+    //     },
+    // ));
 
     io.extend_with(referendum_rpc::ReferendumRpc::to_delegate(
         referendum_rpc::ReferendumRpcImpl { client },

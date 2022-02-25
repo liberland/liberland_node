@@ -15,9 +15,11 @@ pub mod pallet {
     /// Configure the pallet by specifying the parameters and types on which it depends.
     #[pallet::config]
     pub trait Config:
-        frame_system::Config + pallet_identity::Config + pallet_voting::Config
+        frame_system::Config 
+        // + pallet_identity::Config 
+        + pallet_voting::Config
     {
-        type IdentityTrait: pallet_identity::IdentityTrait<Self>;
+        // type IdentityTrait: pallet_identity::IdentityTrait<Self>;
         type VotingTrait: pallet_voting::VotingTrait<Self>;
     }
 
