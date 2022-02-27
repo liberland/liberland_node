@@ -95,18 +95,18 @@ pub mod pallet {
         }
 
         fn on_finalize(block_number: BlockNumberFor<T>) {
-            let current_block = TryInto::<u64>::try_into(block_number).ok().unwrap();
+            let current_block: u64 = TryInto::<u64>::try_into(block_number).unwrap_or(1); // unwrap or default to first block
             let assembly_voting_duration =
                 TryInto::<u64>::try_into(T::AssemblyVotingDuration::get())
                     .ok()
-                    .unwrap();
+                    .unwrap_or_default();
             let assembly_election_period =
                 TryInto::<u64>::try_into(T::AssemblyElectionPeriod::get())
                     .ok()
-                    .unwrap();
+                    .unwrap_or_default();
             let prime_min_voting_delay = TryInto::<u64>::try_into(T::PrimeMinVotingDelay::get())
                 .ok()
-                .unwrap();
+                .unwrap_or_default();
             let x = (current_block / (assembly_voting_duration + assembly_election_period)) as u64;
             let sub_block = x * (assembly_voting_duration + assembly_election_period);
             if (current_block % (sub_block + assembly_voting_duration + prime_min_voting_delay))
@@ -233,7 +233,7 @@ pub mod pallet {
             //         power += T::StakingTrait::get_liber_amount(account_id.clone());
             //     });
 
-            let power = TryInto::<u64>::try_into(power).ok().unwrap();
+            let power = TryInto::<u64>::try_into(power).ok().unwrap_or(0); // find value or default to 0
             Self::alt_vote(sender, ballot, power)?;
             // <VotedCitizens<T>>::mutate(|voted_citizens| {
             //     voted_citizens.insert(citizen);
@@ -298,20 +298,20 @@ pub mod pallet {
             law_type: LawType,
         ) -> DispatchResultWithPostInfo {
             let sender = ensure_signed(origin)?;
-            let current_block = TryInto::<u64>::try_into(<frame_system::Pallet<T>>::block_number())
+            let current_block: u64 = TryInto::<u64>::try_into(<frame_system::Pallet<T>>::block_number())
                 .ok()
-                .unwrap();
-            let assembly_voting_duration =
+                .unwrap_or(1);
+            let assembly_voting_duration: u64 =
                 TryInto::<u64>::try_into(T::AssemblyVotingDuration::get())
                     .ok()
-                    .unwrap();
-            let assembly_election_period =
+                    .unwrap_or(1);
+            let assembly_election_period: u64 =
                 TryInto::<u64>::try_into(T::AssemblyElectionPeriod::get())
                     .ok()
-                    .unwrap();
-            let laws_voting_duration = TryInto::<u64>::try_into(T::LawVotingDuration::get())
+                    .unwrap_or(1);
+            let laws_voting_duration: u64 = TryInto::<u64>::try_into(T::LawVotingDuration::get())
                 .ok()
-                .unwrap();
+                .unwrap_or(1);
             let x: f64 =
                 (current_block / (assembly_voting_duration + assembly_election_period)) as f64;
             ensure!(
@@ -439,7 +439,7 @@ pub mod pallet {
                 candidates,
                 T::WinnersAmount::get(),
             )
-            .unwrap();
+            .unwrap_or_default();
         }
 
         pub fn add_candidate_internal(id: PassportId) -> Result<(), Error<T>> {
@@ -450,6 +450,7 @@ pub mod pallet {
             // <CandidatesList<T>>::mutate(|elem| {
             //     elem.insert(id.to_vec());
             // });
+            todo!("add_candidate_internal");
             Ok(())
         }
 
@@ -461,18 +462,18 @@ pub mod pallet {
             // <PrimeMinCandidatesList<T>>::mutate(|storage| {
             //     storage.insert(id.to_vec());
             // });
+            todo!("add_prime_min_candidate_internal");
             Ok(())
         }
 
         fn start_prime_min_voting() {
-            //This unwrap() is correct
             T::VotingTrait::create_alt_voting(
                 T::PrimeMinVotingHash::get(),
                 T::PrimeMinVotingDuration::get(),
                 <PrimeMinCandidatesList<T>>::get(),
                 Some(<CurrentAssembliesList<T>>::get().len() as u32),
             )
-            .unwrap();
+            .unwrap_or_default();
         }
 
         pub fn alt_vote(

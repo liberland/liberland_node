@@ -146,7 +146,7 @@ pub mod pallet {
                 if (alt_voting_settings.voting_duration + alt_voting_settings.submitted_height)
                     <= block_number
                 {
-                    let winners = Self::calculate_alt_vote_winners_list(subject).unwrap();
+                    let winners = Self::calculate_alt_vote_winners_list(subject).unwrap_or_default(); //if it fails it will return an empty map
                     let ballots_storage: BTreeMap<T::Hash, BTreeMap<T::AccountId, (AltVote, u64)>> =
                         <BallotsStorage<T>>::iter().collect();
                     <T::FinalizeAltVotingListDispatch>::finalize_voting(
