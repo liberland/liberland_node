@@ -1,8 +1,9 @@
 
-<p align="center">
-
+<p>
+<center>
 # Liberland Blockchain
-  <img alt="Liberland blockchain node" title="Liberland Logo" src="Liberland_official_znak.png">
+  <img style="max-height: 250px;" alt="Liberland blockchain node" title="Liberland Logo" src="Liberland_official_znak.png">
+</center>
 </p>
 
 
