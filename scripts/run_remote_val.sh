@@ -1,0 +1,1 @@
+./liberland_node --dev -d data/validator9 --name validator9 --validator --port 30329 --ws-port 9991 --rpc-port 9998 --ws-external --rpc-cors all --rpc-methods=unsafe --bootnodes /ip4/159.65.203.73/tcp/30335/p2p/12D3KooWPvDg6bpReRonJYdEe4y3uNHik5qhkr4AX3dC73MTMQxc

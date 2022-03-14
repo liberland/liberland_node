@@ -20,8 +20,9 @@ linux_install:
 
 linux_light:
 	wget http://get.testnet.liberland.org/liberland_node
+	rm -rf data/
 	chmod +x liberland_node
-	./liberland_node --dev -d data/validator3 --name validator3 --validator --port 30335 --ws-port 9947 --rpc-port 9935 --ws-external --rpc-cors all --rpc-methods=unsafe --bootnodes /ip4/159.65.203.73/tcp/5353/p2p/12D3KooWRm651Kd5GmsLTHJbgX5chQS5npx9ttLgo46UsegCMoNM
+	bash scripts/run_remote_val.sh 
 
 update:
 	git pull
