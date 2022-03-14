@@ -6,7 +6,7 @@ purge:
 	target/release/liberland_node purge-chain --dev -y
 
 build:
-	sh scripts/inits.sh
+	sh scripts/init.sh
 	cargo build --release
 
 check:
