@@ -3,6 +3,7 @@ use crate::mock::*;
 //use frame_support::{assert_err, assert_ok, traits::OnFinalize};
 //use frame_system::ensure_signed;
 
+//type Hashing = <Test as frame_system::Config>::Hashing;
 
 #[test]
 fn basic_referendum_test() {

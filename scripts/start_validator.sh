@@ -1,0 +1,1 @@
+./target/release/substrate --chain node/cli/res/testnet.json -d data/validator1 --name validator1 --in-peers 256 --validator --ws-external --rpc-external --rpc-cors all --rpc-methods=unsafe --node-key 0x74a8cfbadb5d2b0178ec124791bfa8346ac3550a4f689923c806428090055277  
