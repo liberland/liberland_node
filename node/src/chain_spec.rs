@@ -10,7 +10,7 @@ use sp_runtime::{
     traits::{IdentifyAccount, Verify},
     Perbill,
 };
-use std::str::FromStr;
+//use std::str::FromStr;
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";

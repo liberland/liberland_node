@@ -2514,7 +2514,7 @@ impl<T: Config> Module<T> {
         // Increment or set current era.
         let current_era = CurrentEra::mutate(|s| {
             *s = Some(s.map(|s| s + 1).unwrap_or(0));
-            s.unwrap()
+            s.unwrap() // safe as Some returns a default value if it fails
         });
         ErasStartSessionIndex::insert(&current_era, &start_session_index);
 

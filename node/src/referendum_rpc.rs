@@ -10,6 +10,7 @@ use sp_blockchain::HeaderBackend;
 use sp_std::collections::btree_map::BTreeMap;
 use std::sync::Arc;
 
+
 #[rpc]
 pub trait ReferendumRpc {
     #[rpc(name = "get_active_petitions")]
@@ -26,31 +27,39 @@ pub struct ReferendumRpcImpl<C> {
     pub client: Arc<C>,
 }
 
+//impl Error for sp_api::ApiError{}
+
+
+
+
 impl<C> ReferendumRpc for ReferendumRpcImpl<C>
 where
     C: Send + Sync + 'static,
     C: ProvideRuntimeApi<Block>,
     C: HeaderBackend<Block>,
+    //C: HeaderMetadata<Block, Error =  sp_api::ApiError> + 'static,
     C::Api: ReferendumPalletApi<Block, Runtime>,
 {
     fn get_active_petitions(&self) -> Result<BTreeMap<Hash, Suggestion>> {
         let api = self.client.runtime_api();
         let best_hash = BlockId::hash(self.client.info().best_hash);
-        let res = api.get_active_petitions(&best_hash).unwrap();
+       
+       let res = api.get_active_petitions(&best_hash).map_err(|_e| jsonrpc_core::Error::parse_error())?;
+
         Ok(res)
     }
 
     fn get_active_referendums(&self) -> Result<BTreeMap<Hash, Suggestion>> {
         let api = self.client.runtime_api();
         let best_hash = BlockId::hash(self.client.info().best_hash);
-        let res = api.get_active_referendums(&best_hash).unwrap();
+        let res = api.get_active_referendums(&best_hash).map_err(|_e| jsonrpc_core::Error::parse_error())?;
         Ok(res)
     }
 
     fn get_successfull_referendums(&self) -> Result<BTreeMap<Hash, Suggestion>> {
         let api = self.client.runtime_api();
         let best_hash = BlockId::hash(self.client.info().best_hash);
-        let res = api.get_successfull_referendums(&best_hash).unwrap();
+        let res = api.get_successfull_referendums(&best_hash).map_err(|_e| jsonrpc_core::Error::parse_error())?;
         Ok(res)
     }
 }
