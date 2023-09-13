@@ -1,13 +1,14 @@
 [package]
-authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
+authors = ['liberland dev <https://github.com/liberland>']
 build = 'build.rs'
 description = 'A Liberland node implementation.'
-edition = '2018'
-homepage = 'https://substrate.dev'
+edition = '2021'
+homepage = 'https://liberland.org'
 license = 'Unlicense'
 name = 'liberland-node'
-repository = 'https://github.com/substrate-developer-hub/substrate-node-template/'
+repository = 'https://github.com/liberland/liberland_node'
 version = '3.0.0'
+#rust-version = '1.56.1'
 
 [[bin]]
 name = 'liberland-node'
